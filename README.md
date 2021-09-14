@@ -1,2 +1,2 @@
-# winapiblackjack
+# WinAPIBlackjack
 A one on one blackjack game made with Windows API.
