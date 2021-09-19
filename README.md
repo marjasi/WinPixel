@@ -1,2 +1,2 @@
-# WinAPIBlackjack
-A one on one blackjack game made with Windows API.
+# WinAPI21
+A one on one blackjack game (21) made with Windows API.
