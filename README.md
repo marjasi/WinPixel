@@ -1,2 +1,2 @@
-# WinAPI21
-A one on one blackjack game (21) made with Windows API.
+# WinPixel
+A Pixel Art editor that allows you to draw 64x64 size pixel art.
