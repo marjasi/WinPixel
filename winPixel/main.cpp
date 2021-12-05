@@ -67,7 +67,7 @@ int WINAPI WinMain (HINSTANCE hThisInstance,
            WS_OVERLAPPEDWINDOW, /* default window */
            CW_USEDEFAULT,       /* Windows decides the position */
            CW_USEDEFAULT,       /* where the window ends up on the screen */
-           1280,                 /* The programs width */
+           900,                 /* The program's width */
            720,                 /* and height in pixels */
            HWND_DESKTOP,        /* The window is a child-window to desktop */
            LoadMenu(hThisInstance, MAKEINTRESOURCE(ID_TOP_MENU)), /* Menu from resource file */
