@@ -8,14 +8,18 @@
 #include "user_interface.h"
 #include <windows.h>
 
-void CreateDrawAreaSquare();
-void CreateDrawArea();
+void CreateDrawAreaSquare(int x, int y, int width, int height, int buttonId, HWND hwnd);
+void CreateDrawArea(HWND hwnd);
+void DrawDrawAreaSquare(LPARAM lParam);
 
 /*  Declare Windows procedure  */
 LRESULT CALLBACK WindowProcedure (HWND, UINT, WPARAM, LPARAM);
 
 /*  Make the class name into a global variable  */
-TCHAR szClassName[ ] = _T("CodeBlocksWindowsApp");
+TCHAR szClassName[ ] = TEXT("CodeBlocksWindowsApp");
+
+//Constant global variables
+const int DEFAULT_DRAW_AREA_SQUARE_COLOR = RGB(255, 255, 255);
 
 int WINAPI WinMain (HINSTANCE hThisInstance,
                      HINSTANCE hPrevInstance,
@@ -99,10 +103,44 @@ void CreateDrawAreaSquare(int x, int y, int width, int height, int buttonId, HWN
 void CreateDrawArea(HWND hwnd)
 {
     int i;
-    for (i = 0; i < DRAW_AREA_SQUARE_NUM; i++)
+    //The total number of squares is calculated based on the width and height of the draw area
+    int drawAreaSquareNum = DRAW_AREA_WIDTH*DRAW_AREA_HEIGHT;
+    int currentRowNum = 1;
+    int currentColumnNum = 1;
+    //The first square is drawn in the top left corner
+    int squareXPos = DRAW_AREA_TOP_LEFT_X;
+    int squareYPos = DRAW_AREA_TOP_LEFT_Y;
+    for (i = 0; i < drawAreaSquareNum; i++)
     {
-        CreateDrawAreaSquare(50, 50, 40, 40, ID_DRAW_AREA_1 + i, hwnd);
+        //The first square has been created. Calculate position of other squares
+        if (i > 0)
+        {
+            //Row still not filled
+            if (currentColumnNum <= DRAW_AREA_WIDTH)
+            {
+                squareXPos = DRAW_AREA_TOP_LEFT_X + DRAW_AREA_SQUARE_WIDTH*currentColumnNum;
+                currentColumnNum++;
+            }
+            //New row start x position
+            else
+            {
+                squareXPos = DRAW_AREA_TOP_LEFT_X;
+                squareYPos = DRAW_AREA_TOP_LEFT_Y + DRAW_AREA_SQUARE_HEIGHT*currentRowNum;
+                currentColumnNum = 1;
+                currentRowNum++;
+            }
+        }
+        CreateDrawAreaSquare(squareXPos, squareYPos, DRAW_AREA_SQUARE_WIDTH, DRAW_AREA_SQUARE_HEIGHT, ID_DRAW_AREA_1 + i, hwnd);
     }
+}
+
+void DrawDrawAreaSquare(LPARAM drawItemStructPtr, int squareColorRGB, HGDIOBJ drawingBrush)
+{
+    LPDRAWITEMSTRUCT lpDIS = (LPDRAWITEMSTRUCT) drawItemStructPtr;
+    SetDCBrushColor(lpDIS -> hDC, squareColorRGB);
+    SelectObject(lpDIS -> hDC, drawingBrush);
+    Rectangle(lpDIS -> hDC, lpDIS -> rcItem.left, lpDIS -> rcItem.top,
+        lpDIS -> rcItem.right, lpDIS -> rcItem.bottom);
 }
 
 
@@ -125,11 +163,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
             break;
         case WM_DRAWITEM:
             {
-                LPDRAWITEMSTRUCT lpDIS = (LPDRAWITEMSTRUCT)lParam;
-                SetDCBrushColor(lpDIS -> hDC, RGB(255, 0, 0));
-                SelectObject(lpDIS -> hDC, GetStockObject(DC_BRUSH));
-                Rectangle(lpDIS -> hDC, lpDIS -> rcItem.left, lpDIS -> rcItem.top,
-                    lpDIS -> rcItem.right, lpDIS -> rcItem.bottom);
+                DrawDrawAreaSquare(lParam, DEFAULT_DRAW_AREA_SQUARE_COLOR, GetStockObject(DC_BRUSH));
                 return TRUE;
             }
             break;
