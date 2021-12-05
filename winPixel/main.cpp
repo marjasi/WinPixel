@@ -68,7 +68,7 @@ int WINAPI WinMain (HINSTANCE hThisInstance,
            CW_USEDEFAULT,       /* Windows decides the position */
            CW_USEDEFAULT,       /* where the window ends up on the screen */
            900,                 /* The program's width */
-           720,                 /* and height in pixels */
+           800,                 /* and height in pixels */
            HWND_DESKTOP,        /* The window is a child-window to desktop */
            LoadMenu(hThisInstance, MAKEINTRESOURCE(ID_TOP_MENU)), /* Menu from resource file */
            hThisInstance,       /* Program Instance handler */
@@ -134,7 +134,7 @@ void CreateDrawArea(HWND hwnd)
             currentRowNum++;
         }
         //Create a draw area square and store its handle for later use
-        DRAW_AREA_SQUARE_HANDLES[i] = CreateDrawAreaSquare(squareXPos, squareYPos, DRAW_AREA_SQUARE_WIDTH, DRAW_AREA_SQUARE_HEIGHT, ID_DRAW_AREA_1 + i, hwnd);
+        DRAW_AREA_SQUARE_HANDLES[i] = CreateDrawAreaSquare(squareXPos, squareYPos, DRAW_AREA_SQUARE_WIDTH, DRAW_AREA_SQUARE_HEIGHT, ID_DRAW_AREA_SQUARE_1 + i, hwnd);
     }
 }
 
