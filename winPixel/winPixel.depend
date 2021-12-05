@@ -1,9 +1,12 @@
 # depslib dependency file v1.0
-1638712391 source:d:\university\dabartinis semestras\programavimas su windows api\projects\winpixel\winpixel\main.cpp
+1638724480 source:d:\university\dabartinis semestras\programavimas su windows api\projects\winpixel\winpixel\main.cpp
 	<tchar.h>
 	"user_interface.h"
 	<windows.h>
 
-1638712692 d:\university\dabartinis semestras\programavimas su windows api\projects\winpixel\winpixel\user_interface.h
+1638724526 d:\university\dabartinis semestras\programavimas su windows api\projects\winpixel\winpixel\user_interface.h
 	<windows.h>
+
+1638712693 source:d:\university\dabartinis semestras\programavimas su windows api\projects\winpixel\winpixel\user_interface.rc
+	"user_interface.h"
 

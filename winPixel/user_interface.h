@@ -11,4 +11,9 @@
 
 //Buttons
 
+//Draw area squares
+//IMPORTANT: DRAW_AREA_SQUARE_NUM must represent the current number of draw area squares
+#define DRAW_AREA_SQUARE_NUM 1
+#define ID_DRAW_AREA_1 30001
+
 #endif // USER_INTERFACE_H_INCLUDED

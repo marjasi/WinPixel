@@ -8,6 +8,9 @@
 #include "user_interface.h"
 #include <windows.h>
 
+void CreateDrawAreaSquare();
+void CreateDrawArea();
+
 /*  Declare Windows procedure  */
 LRESULT CALLBACK WindowProcedure (HWND, UINT, WPARAM, LPARAM);
 
@@ -76,22 +79,59 @@ int WINAPI WinMain (HINSTANCE hThisInstance,
     return messages.wParam;
 }
 
+void CreateDrawAreaSquare(int x, int y, int width, int height, int buttonId, HWND hwnd)
+{
+    CreateWindow(
+    TEXT("BUTTON"),  //The draw area square is a button
+    TEXT("HELLO"),  //No button text
+    WS_VISIBLE | WS_CHILD | BS_OWNERDRAW, //Styles
+    x, //x axis position
+    y, //y axis position
+    width, //Width
+    height, //Height
+    hwnd, //Parent window of the child window
+    (HMENU) buttonId, //The ID of the button
+    (HINSTANCE) GetWindowLong(hwnd, GWLP_HINSTANCE), //Program instance.
+    NULL
+    );
+}
+
+void CreateDrawArea(HWND hwnd)
+{
+    int i;
+    for (i = 0; i < DRAW_AREA_SQUARE_NUM; i++)
+    {
+        CreateDrawAreaSquare(50, 50, 40, 40, ID_DRAW_AREA_1 + i, hwnd);
+    }
+}
+
 
 /*  This function is called by the Windows function DispatchMessage()  */
 
 LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    HDC hdc;
+    HDC hdc = GetDC(hwnd);
     RECT r;
     switch (message)                  /* handle the messages */
     {
         case WM_CREATE:
+            CreateDrawArea(hwnd);
             break;
         case WM_PAINT:
-                PAINTSTRUCT ps;
-                hdc = BeginPaint(hwnd, &ps);
-                // All painting occurs here, between BeginPaint and EndPaint.
-                EndPaint(hwnd, &ps);
+            PAINTSTRUCT ps;
+            hdc = BeginPaint(hwnd, &ps);
+            // All painting occurs here, between BeginPaint and EndPaint.
+            EndPaint(hwnd, &ps);
+            break;
+        case WM_DRAWITEM:
+            {
+                LPDRAWITEMSTRUCT lpDIS = (LPDRAWITEMSTRUCT)lParam;
+                SetDCBrushColor(lpDIS -> hDC, RGB(255, 0, 0));
+                SelectObject(lpDIS -> hDC, GetStockObject(DC_BRUSH));
+                Rectangle(lpDIS -> hDC, lpDIS -> rcItem.left, lpDIS -> rcItem.top,
+                    lpDIS -> rcItem.right, lpDIS -> rcItem.bottom);
+                return TRUE;
+            }
             break;
         case WM_DESTROY:
             PostQuitMessage (0);       /* send a WM_QUIT to the message queue */
