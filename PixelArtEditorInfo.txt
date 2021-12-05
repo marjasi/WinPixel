@@ -2,5 +2,5 @@ winPixel components as per WinAPI course requirements:
  -User interface is designed to have the draw area to the left of the main window and the color picker area to the right of the main window.
  -Resource scripts are used for the main window layout.
  -Graphical elements (like images) are used in picking colors and the draw area to color the pixels.
- -Dynamic Link Libraries are used for saving and opening 64x64 pixel art image files.
+ -Dynamic Link Libraries are used for saving and opening 16x16 pixel art image files.
  -Files are used to save the drawn 16x16 pixel art.
