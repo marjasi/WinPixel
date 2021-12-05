@@ -5,6 +5,7 @@
 #endif
 
 #include <tchar.h>
+#include "user_interface.h"
 #include <windows.h>
 
 /*  Declare Windows procedure  */
@@ -54,7 +55,7 @@ int WINAPI WinMain (HINSTANCE hThisInstance,
            1280,                 /* The programs width */
            720,                 /* and height in pixels */
            HWND_DESKTOP,        /* The window is a child-window to desktop */
-           NULL,                /* No menu */
+           LoadMenu(hThisInstance, MAKEINTRESOURCE(ID_TOP_MENU)), /* Menu from resource file */
            hThisInstance,       /* Program Instance handler */
            NULL                 /* No Window Creation data */
            );
