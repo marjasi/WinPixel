@@ -64,7 +64,7 @@ int WINAPI WinMain (HINSTANCE hThisInstance,
            0,                   /* Extended possibilites for variation */
            szClassName,         /* Classname */
            TEXT("winPixel"),       /* Title Text */
-           WS_OVERLAPPEDWINDOW, /* default window */
+           WS_OVERLAPPEDWINDOW, /* Default window */
            CW_USEDEFAULT,       /* Windows decides the position */
            CW_USEDEFAULT,       /* where the window ends up on the screen */
            900,                 /* The program's width */
