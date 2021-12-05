@@ -8,9 +8,11 @@
 #include "user_interface.h"
 #include <windows.h>
 
-void CreateDrawAreaSquare(int x, int y, int width, int height, int buttonId, HWND hwnd);
+//Custom functions
+HWND CreateDrawAreaSquare(int x, int y, int width, int height, int buttonId, HWND hwnd);
 void CreateDrawArea(HWND hwnd);
-void DrawDrawAreaSquare(LPARAM lParam);
+void DrawDrawAreaSquare(LPARAM drawItemStructPtr, int squareColorRGB, HGDIOBJ drawingBrush, bool drawBorder);
+void RedrawDrawArea();
 
 /*  Declare Windows procedure  */
 LRESULT CALLBACK WindowProcedure (HWND, UINT, WPARAM, LPARAM);
@@ -19,7 +21,13 @@ LRESULT CALLBACK WindowProcedure (HWND, UINT, WPARAM, LPARAM);
 TCHAR szClassName[ ] = TEXT("CodeBlocksWindowsApp");
 
 //Constant global variables
-const int DEFAULT_DRAW_AREA_SQUARE_COLOR = RGB(255, 255, 255);
+const int DRAW_AREA_SQUARE_NUM = DRAW_AREA_WIDTH*DRAW_AREA_HEIGHT;
+
+//Global variables
+int DEFAULT_DRAW_AREA_SQUARE_COLOR = RGB(255, 255, 255);
+int DEFAULT_DRAW_AREA_SQUARE_BORDER_COLOR = RGB(0, 0, 0);
+HWND DRAW_AREA_SQUARE_HANDLES [DRAW_AREA_SQUARE_NUM];
+bool DRAW_DRAW_AREA_SQUARE_BORDER = true;
 
 int WINAPI WinMain (HINSTANCE hThisInstance,
                      HINSTANCE hPrevInstance,
@@ -83,9 +91,9 @@ int WINAPI WinMain (HINSTANCE hThisInstance,
     return messages.wParam;
 }
 
-void CreateDrawAreaSquare(int x, int y, int width, int height, int buttonId, HWND hwnd)
+HWND CreateDrawAreaSquare(int x, int y, int width, int height, int buttonId, HWND hwnd)
 {
-    CreateWindow(
+    return CreateWindow(
     TEXT("BUTTON"),  //The draw area square is a button
     TEXT("HELLO"),  //No button text
     WS_VISIBLE | WS_CHILD | BS_OWNERDRAW, //Styles
@@ -104,52 +112,61 @@ void CreateDrawArea(HWND hwnd)
 {
     int i;
     //The total number of squares is calculated based on the width and height of the draw area
-    int drawAreaSquareNum = DRAW_AREA_WIDTH*DRAW_AREA_HEIGHT;
     int currentRowNum = 1;
-    int currentColumnNum = 1;
+    int currentColumnNum = 0;
     //The first square is drawn in the top left corner
     int squareXPos = DRAW_AREA_TOP_LEFT_X;
     int squareYPos = DRAW_AREA_TOP_LEFT_Y;
-    for (i = 0; i < drawAreaSquareNum; i++)
+    for (i = 0; i < DRAW_AREA_SQUARE_NUM; i++)
     {
-        //The first square has been created. Calculate position of other squares
-        if (i > 0)
+        //Row still not filled
+        if (currentColumnNum < DRAW_AREA_WIDTH)
         {
-            //Row still not filled
-            if (currentColumnNum <= DRAW_AREA_WIDTH)
-            {
-                squareXPos = DRAW_AREA_TOP_LEFT_X + DRAW_AREA_SQUARE_WIDTH*currentColumnNum;
-                currentColumnNum++;
-            }
-            //New row start x position
-            else
-            {
-                squareXPos = DRAW_AREA_TOP_LEFT_X;
-                squareYPos = DRAW_AREA_TOP_LEFT_Y + DRAW_AREA_SQUARE_HEIGHT*currentRowNum;
-                currentColumnNum = 1;
-                currentRowNum++;
-            }
+            squareXPos = DRAW_AREA_TOP_LEFT_X + DRAW_AREA_SQUARE_WIDTH*currentColumnNum;
+            currentColumnNum++;
         }
-        CreateDrawAreaSquare(squareXPos, squareYPos, DRAW_AREA_SQUARE_WIDTH, DRAW_AREA_SQUARE_HEIGHT, ID_DRAW_AREA_1 + i, hwnd);
+        //New row start x position
+        else
+        {
+            squareXPos = DRAW_AREA_TOP_LEFT_X;
+            squareYPos = DRAW_AREA_TOP_LEFT_Y + DRAW_AREA_SQUARE_HEIGHT*currentRowNum;
+            currentColumnNum = 1;
+            currentRowNum++;
+        }
+        //Create a draw area square and store its handle for later use
+        DRAW_AREA_SQUARE_HANDLES[i] = CreateDrawAreaSquare(squareXPos, squareYPos, DRAW_AREA_SQUARE_WIDTH, DRAW_AREA_SQUARE_HEIGHT, ID_DRAW_AREA_1 + i, hwnd);
     }
 }
 
-void DrawDrawAreaSquare(LPARAM drawItemStructPtr, int squareColorRGB, HGDIOBJ drawingBrush)
+void DrawDrawAreaSquare(LPARAM drawItemStructPtr, int squareColorRGB, HGDIOBJ drawingBrush, HGDIOBJ drawingPen, bool drawBorder)
 {
+    //If we don't want a visible border, we just set its color to the background color of the square
+    int squareBorderColor = drawBorder ? DEFAULT_DRAW_AREA_SQUARE_BORDER_COLOR : squareColorRGB;
+
     LPDRAWITEMSTRUCT lpDIS = (LPDRAWITEMSTRUCT) drawItemStructPtr;
+    SetDCPenColor(lpDIS -> hDC, squareBorderColor);
     SetDCBrushColor(lpDIS -> hDC, squareColorRGB);
     SelectObject(lpDIS -> hDC, drawingBrush);
+    SelectObject(lpDIS -> hDC, drawingPen);
     Rectangle(lpDIS -> hDC, lpDIS -> rcItem.left, lpDIS -> rcItem.top,
         lpDIS -> rcItem.right, lpDIS -> rcItem.bottom);
 }
 
+void RedrawDrawArea()
+{
+    int i;
+    for (i = 0; i < DRAW_AREA_SQUARE_NUM; i++)
+    {
+        //Sends a WM_DRAWITEM message for the specified window, which is a draw area square in this case
+        InvalidateRect(DRAW_AREA_SQUARE_HANDLES[i], NULL, false);
+    }
+}
 
 /*  This function is called by the Windows function DispatchMessage()  */
 
 LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     HDC hdc = GetDC(hwnd);
-    RECT r;
     switch (message)                  /* handle the messages */
     {
         case WM_CREATE:
@@ -163,8 +180,24 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
             break;
         case WM_DRAWITEM:
             {
-                DrawDrawAreaSquare(lParam, DEFAULT_DRAW_AREA_SQUARE_COLOR, GetStockObject(DC_BRUSH));
+                DrawDrawAreaSquare(lParam, DEFAULT_DRAW_AREA_SQUARE_COLOR, GetStockObject(DC_BRUSH), GetStockObject(DC_PEN), DRAW_DRAW_AREA_SQUARE_BORDER);
                 return TRUE;
+            }
+            break;
+        case WM_COMMAND:
+            switch (LOWORD(wParam))
+            {
+                //Options menu, show gridlines
+                case ID_SHOW_GRIDLINES:
+                    {
+                        DRAW_DRAW_AREA_SQUARE_BORDER = !DRAW_DRAW_AREA_SQUARE_BORDER;
+                        UINT checkState = DRAW_DRAW_AREA_SQUARE_BORDER ? MF_CHECKED : MF_UNCHECKED;
+                        CheckMenuItem(GetMenu(hwnd), ID_SHOW_GRIDLINES, checkState);
+                        RedrawDrawArea();
+                    }
+                    break;
+                default:
+                    break;
             }
             break;
         case WM_DESTROY:

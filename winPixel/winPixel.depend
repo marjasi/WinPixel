@@ -10,12 +10,12 @@
 1638712693 source:d:\university\dabartinis semestras\programavimas su windows api\projects\winpixel\winpixel\user_interface.rc
 	"user_interface.h"
 
-1638727246 source:c:\users\marij\desktop\winpixel\winpixel\main.cpp
+1638736245 source:c:\users\marij\desktop\winpixel\winpixel\main.cpp
 	<tchar.h>
 	"user_interface.h"
 	<windows.h>
 
-1638726914 c:\users\marij\desktop\winpixel\winpixel\user_interface.h
+1638732147 c:\users\marij\desktop\winpixel\winpixel\user_interface.h
 	<windows.h>
 
 1638712693 source:c:\users\marij\desktop\winpixel\winpixel\user_interface.rc
