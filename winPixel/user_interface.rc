@@ -1,0 +1,14 @@
+#include "user_interface.h"
+
+ID_TOP_MENU MENU
+BEGIN
+    POPUP "&Art"
+    BEGIN
+        MENUITEM "&Save Art", ID_SAVE_ART
+        MENUITEM "&Load Art From File", ID_LOAD_ART
+    END
+    POPUP "&Options"
+    BEGIN
+        MENUITEM "&Show/Hide Gridlines", ID_SHOW_GRIDLINES, CHECKED
+    END
+END
