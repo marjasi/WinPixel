@@ -1,5 +1,7 @@
 # WinPixel
 A pixel art editor created with Windows API that allows you to draw 24x24 size pixel art and save it as .bmp files of the same size.
+## Quick start
+Launch the winPixel.exe file in the winPixel subdirectory and start painting!
 ## Main Features
 - Work with a 24x24 pixel drawing area and color it as you see fit.
 - Save your drawings as .bmp files and then later load them back into the editor.
@@ -22,6 +24,8 @@ An alternative to The Pixel Pen that is similar to a bucket tool. It paints all 
 - **Resource scripts:** used to define the top window menu.
 - **Common Item Dialog:** used to allow the user to choose where to save their art or where to load it from.
 - **Dynamic Link Libraries:** used to save and load .bmp file data.
+## Define statement generator
+It's a separate application that was used to generate a text file defineStatements.txt, which contains the declarations of the draw area button ID values.
 ## FAQ
 ### How does it work?
 The drawing area is made up of owner drawn buttons that have their background color and border color changed. There is a separate array that keeps all the current background colors of the buttons. When a user interacts with the drawing area, the values in this array are modified and then a specific owner drawn button is redrawn based on the modified value.  
