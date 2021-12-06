@@ -9,10 +9,13 @@
 #include <windows.h>
 
 //Custom functions
+bool inRange(int value, int lowValue, int highValue);
 HWND CreateDrawAreaSquare(int x, int y, int width, int height, int buttonId, HWND hwnd);
 void CreateDrawArea(HWND hwnd);
 void DrawDrawAreaSquare(LPARAM drawItemStructPtr, int squareColorRGB, HGDIOBJ drawingBrush, bool drawBorder);
+void RedrawDrawAreaSquare(HWND squareHandle);
 void RedrawDrawArea();
+int GetDrawAreaSquareSeqNumByHandle(HWND squareHandle, HWND* allSquareHandles, int drawAreaSquareNum);
 
 /*  Declare Windows procedure  */
 LRESULT CALLBACK WindowProcedure (HWND, UINT, WPARAM, LPARAM);
@@ -22,12 +25,19 @@ TCHAR szClassName[ ] = TEXT("CodeBlocksWindowsApp");
 
 //Constant global variables
 const int DRAW_AREA_SQUARE_NUM = DRAW_AREA_WIDTH*DRAW_AREA_HEIGHT;
+//Low and high bound values are inclusive
+const int DRAW_AREA_LOW_VALUE = ID_DRAW_AREA_SQUARE_1;
+const int DRAW_AREA_HIGH_VALUE = DRAW_AREA_LOW_VALUE + DRAW_AREA_SQUARE_NUM - 1;
 
 //Global variables
 int DEFAULT_DRAW_AREA_SQUARE_COLOR = RGB(255, 255, 255);
 int DEFAULT_DRAW_AREA_SQUARE_BORDER_COLOR = RGB(0, 0, 0);
-HWND DRAW_AREA_SQUARE_HANDLES [DRAW_AREA_SQUARE_NUM];
 bool DRAW_DRAW_AREA_SQUARE_BORDER = true;
+//All the draw area square handles
+HWND DRAW_AREA_SQUARE_HANDLES[DRAW_AREA_SQUARE_NUM];
+//The current color of all draw area squares
+COLORREF DRAW_AREA_SQUARE_RGB[DRAW_AREA_SQUARE_NUM];
+COLORREF CURRENT_DRAW_COLOR = RGB(47, 120, 23);
 
 int WINAPI WinMain (HINSTANCE hThisInstance,
                      HINSTANCE hPrevInstance,
@@ -91,6 +101,12 @@ int WINAPI WinMain (HINSTANCE hThisInstance,
     return messages.wParam;
 }
 
+//Checks whether a given value is in the range with the inclusive low and high values
+bool inRange(int value, int lowValue, int highValue)
+{
+    return (lowValue <= value && value <= highValue);
+}
+
 HWND CreateDrawAreaSquare(int x, int y, int width, int height, int buttonId, HWND hwnd)
 {
     return CreateWindow(
@@ -135,12 +151,14 @@ void CreateDrawArea(HWND hwnd)
         }
         //Create a draw area square and store its handle for later use
         DRAW_AREA_SQUARE_HANDLES[i] = CreateDrawAreaSquare(squareXPos, squareYPos, DRAW_AREA_SQUARE_WIDTH, DRAW_AREA_SQUARE_HEIGHT, ID_DRAW_AREA_SQUARE_1 + i, hwnd);
+        //Set the default square color for drawing
+        DRAW_AREA_SQUARE_RGB[i] = DEFAULT_DRAW_AREA_SQUARE_COLOR;
     }
 }
 
 void DrawDrawAreaSquare(LPARAM drawItemStructPtr, int squareColorRGB, HGDIOBJ drawingBrush, HGDIOBJ drawingPen, bool drawBorder)
 {
-    //If we don't want a visible border, we just set its color to the background color of the square
+    //If we don't want a visible border, we just set the border's color to the background color of the square
     int squareBorderColor = drawBorder ? DEFAULT_DRAW_AREA_SQUARE_BORDER_COLOR : squareColorRGB;
 
     LPDRAWITEMSTRUCT lpDIS = (LPDRAWITEMSTRUCT) drawItemStructPtr;
@@ -152,14 +170,33 @@ void DrawDrawAreaSquare(LPARAM drawItemStructPtr, int squareColorRGB, HGDIOBJ dr
         lpDIS -> rcItem.right, lpDIS -> rcItem.bottom);
 }
 
+void RedrawDrawAreaSquare(HWND squareHandle)
+{
+    //Sends a WM_DRAWITEM message for the specified window, which is a draw area square in this case
+    InvalidateRect(squareHandle, NULL, false);
+}
+
 void RedrawDrawArea()
 {
     int i;
     for (i = 0; i < DRAW_AREA_SQUARE_NUM; i++)
     {
-        //Sends a WM_DRAWITEM message for the specified window, which is a draw area square in this case
-        InvalidateRect(DRAW_AREA_SQUARE_HANDLES[i], NULL, false);
+        RedrawDrawAreaSquare(DRAW_AREA_SQUARE_HANDLES[i]);
     }
+}
+//Returns -1 if there is no such draw area square with the specified handle value
+int GetDrawAreaSquareSeqNumByHandle(HWND squareHandle, HWND* allSquareHandles, int drawAreaSquareNum)
+{
+    int i;
+    for (i = 0; i < drawAreaSquareNum; i++)
+    {
+        if (allSquareHandles[i] == squareHandle)
+        {
+            return i;
+        }
+    }
+
+    return -1;
 }
 
 /*  This function is called by the Windows function DispatchMessage()  */
@@ -180,11 +217,22 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
             break;
         case WM_DRAWITEM:
             {
-                DrawDrawAreaSquare(lParam, DEFAULT_DRAW_AREA_SQUARE_COLOR, GetStockObject(DC_BRUSH), GetStockObject(DC_PEN), DRAW_DRAW_AREA_SQUARE_BORDER);
+                LPDRAWITEMSTRUCT lpDIS = (LPDRAWITEMSTRUCT) lParam;
+                COLORREF drawAreaSquareBgColor = DRAW_AREA_SQUARE_RGB[GetDrawAreaSquareSeqNumByHandle(lpDIS->hwndItem, DRAW_AREA_SQUARE_HANDLES, DRAW_AREA_SQUARE_NUM)];
+                DrawDrawAreaSquare(lParam, drawAreaSquareBgColor,GetStockObject(DC_BRUSH), GetStockObject(DC_PEN), DRAW_DRAW_AREA_SQUARE_BORDER);
                 return TRUE;
             }
             break;
         case WM_COMMAND:
+            //A draw area square has been clicked
+            if (inRange(LOWORD(wParam), DRAW_AREA_LOW_VALUE, DRAW_AREA_HIGH_VALUE))
+            {
+                HWND drawAreaSquareHandle = GetDlgItem(hwnd, LOWORD(wParam));
+                int drawAreaSquareSeqNum = GetDrawAreaSquareSeqNumByHandle(drawAreaSquareHandle, DRAW_AREA_SQUARE_HANDLES, DRAW_AREA_SQUARE_NUM);
+                DRAW_AREA_SQUARE_RGB[drawAreaSquareSeqNum] = CURRENT_DRAW_COLOR;
+                RedrawDrawAreaSquare(drawAreaSquareHandle);
+            }
+
             switch (LOWORD(wParam))
             {
                 //Options menu, show gridlines
