@@ -1,6 +1,0 @@
-# depslib dependency file v1.0
-1638738586 source:c:\users\marij\desktop\winpixel\definestatementgenerator\main.cpp
-	<iostream>
-	<fstream>
-	<string>
-
