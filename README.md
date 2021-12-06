@@ -11,7 +11,7 @@ A pixel art editor created with Windows API that allows you to draw 24x24 size p
 - **Save Art:** save the current drawing area pixel data to a .bmp file. Gridlines will never be saved, only the background colors of individual pixels. The final image will look like the one that can be seen in the editor with the gridlines turned off.
 - **Load Art From File:** load pixel data from a .bmp file that is of size 24x24 or larger. If a .bmp file is of size 24x24, all of its data will be loaded into the drawing area. What is more, if a .bmp file is larger than 24x24 pixels, data from the top left corner of the span 24x24 will be loaded into the drawing area. However, if a .bmp file is smaller than 24x24 pixels, its data won't be loaded into the drawing area. 
 ### Options
-- **✓ Show Gridlines:** turn the gridlines on or off.
+- **Show/Hide Gridlines:** turn the gridlines on or off.
 - **Invert Gridline Color:** changes the gridline color from black to white and vice versa. If the gridlines are turned off, this option won't draw gridlines after clicking. Otherwise, it will redraw the gridlines with the changed color.
 ## Drawing tools
 ### The Pixel Pen
