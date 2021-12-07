@@ -7,7 +7,7 @@ void CreateErrorPopup(HWND hwnd, LPCSTR errorMessage, int popupWidth, int popupH
 {
     int centerX, centerY;
 
-    //Find the rectangle of the specified window to calculate the center positions
+    //Find the rectangle of the specified window to calculate the center positions.
     RECT rect;
     GetWindowRect(hwnd, &rect);
 
@@ -15,15 +15,15 @@ void CreateErrorPopup(HWND hwnd, LPCSTR errorMessage, int popupWidth, int popupH
     centerY = (rect.bottom - rect.top) / 2;
 
     CreateWindow(
-    TEXT("POPUP"),  //The window is a popup
-    errorMessage,  //Error message is displayed in the popup
-    WS_VISIBLE | WS_POPUP, //Styles
-    centerX, //x axis position
-    centerY, //y axis position
-    popupWidth, //Width
-    popupHeight, //Height
-    hwnd, //Parent window of the child window
-    (HMENU) ID_ERROR_POPUP, //The ID of the popup window
+    TEXT("POPUP"), //The window is a popup.
+    errorMessage, //Error message is displayed in the popup.
+    WS_VISIBLE | WS_POPUP, //Styles.
+    centerX, //x axis position.
+    centerY, //y axis position.
+    popupWidth, //Width.
+    popupHeight, //Height.
+    hwnd, //Parent window of the child window.
+    (HMENU) ID_ERROR_POPUP, //The ID of the popup window.
     (HINSTANCE) GetWindowLong(hwnd, GWLP_HINSTANCE), //Program instance.
     NULL
     );
