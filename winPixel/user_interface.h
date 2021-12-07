@@ -3,6 +3,11 @@
 
 #include <windows.h>
 
+//Error Popup
+#define ID_ERROR_POPUP 10000
+#define ERROR_POPUP_WIDTH 200
+#define ERROR_POPUP_HEIGHT 100
+
 //Top menu
 #define ID_TOP_MENU 10001
 #define ID_SAVE_ART 10002

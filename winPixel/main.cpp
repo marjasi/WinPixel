@@ -5,8 +5,9 @@
 #endif
 
 #include <tchar.h>
-#include "user_interface.h"
 #include <windows.h>
+#include "file_IO.h"
+#include "user_interface.h"
 
 //Custom functions
 bool inRange(int value, int lowValue, int highValue);
@@ -24,6 +25,8 @@ LRESULT CALLBACK WindowProcedure (HWND, UINT, WPARAM, LPARAM);
 TCHAR szClassName[ ] = TEXT("CodeBlocksWindowsApp");
 
 //Constant global variables
+const int MAIN_WINDOW_WIDTH = 900;
+const int MAIN_WINDOW_HEIGHT = 800;
 const int DRAW_AREA_SQUARE_NUM = DRAW_AREA_WIDTH*DRAW_AREA_HEIGHT;
 //Low and high bound values are inclusive
 const int DRAW_AREA_LOW_VALUE = ID_DRAW_AREA_SQUARE_1;
@@ -71,19 +74,19 @@ int WINAPI WinMain (HINSTANCE hThisInstance,
 
     /* The class is registered, let's create the program*/
     hwnd = CreateWindowEx (
-           0,                   /* Extended possibilites for variation */
-           szClassName,         /* Classname */
-           TEXT("winPixel"),       /* Title Text */
-           WS_OVERLAPPEDWINDOW, /* Default window */
-           CW_USEDEFAULT,       /* Windows decides the position */
-           CW_USEDEFAULT,       /* where the window ends up on the screen */
-           900,                 /* The program's width */
-           800,                 /* and height in pixels */
-           HWND_DESKTOP,        /* The window is a child-window to desktop */
-           LoadMenu(hThisInstance, MAKEINTRESOURCE(ID_TOP_MENU)), /* Menu from resource file */
-           hThisInstance,       /* Program Instance handler */
-           NULL                 /* No Window Creation data */
-           );
+    0,                   /* Extended possibilites for variation */
+    szClassName,         /* Classname */
+    TEXT("winPixel"),    /* Title Text */
+    WS_OVERLAPPEDWINDOW, /* Default window */
+    CW_USEDEFAULT,       /* Windows decides the position */
+    CW_USEDEFAULT,       /* where the window ends up on the screen */
+    MAIN_WINDOW_WIDTH,   /* The program's width */
+    MAIN_WINDOW_HEIGHT,  /* and height in pixels */
+    HWND_DESKTOP,        /* The window is a child-window to desktop */
+    LoadMenu(hThisInstance, MAKEINTRESOURCE(ID_TOP_MENU)), /* Menu from resource file */
+    hThisInstance,       /* Program Instance handler */
+    NULL                 /* No Window Creation data */
+    );
 
     /* Make the window visible on the screen */
     ShowWindow (hwnd, nCmdShow);
