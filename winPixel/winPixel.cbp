@@ -37,6 +37,10 @@
 			<Add library="kernel32" />
 			<Add library="comctl32" />
 		</Linker>
+		<Unit filename="error_handling.cpp" />
+		<Unit filename="error_handling.h" />
+		<Unit filename="file_IO.cpp" />
+		<Unit filename="file_IO.h" />
 		<Unit filename="main.cpp" />
 		<Unit filename="user_interface.h" />
 		<Unit filename="user_interface.rc">
