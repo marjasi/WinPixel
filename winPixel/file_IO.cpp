@@ -10,7 +10,7 @@ HBITMAP GetBimapHandleOfDrawArea(int bitmapWidth, int bitmapHeight, COLORREF* rg
     bitmapWidth, //Bitmap width in pixels.
     bitmapHeight, //Bitmap height in pixels.
     1, //The number of color planes used in the bitmap file.
-    sizeof(rgbColorValues) * 8, //Number of bits used to represent different colors.
+    32, //Number of bits used to represent different colors.
     rgbColorValues //Bitmap color data array.
     );
 }

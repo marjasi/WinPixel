@@ -257,7 +257,11 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
             {
                 //Options menu, save art.
                 case ID_SAVE_ART:
-                    GetBimapHandleOfDrawArea(DRAW_AREA_WIDTH, DRAW_AREA_HEIGHT, DRAW_AREA_SQUARE_RGB);
+                    {
+                        HBITMAP hBmpFile = GetBimapHandleOfDrawArea(DRAW_AREA_WIDTH, DRAW_AREA_HEIGHT, DRAW_AREA_SQUARE_RGB);
+                        PBITMAPINFO pBmpInfo = CreateBitmapInfoStruct(hwnd, hBmpFile);
+                        CreateBMPFile(hwnd, hBmpFile, hdc, TEXT("drawing.bmp"), pBmpInfo);
+                    }
                     break;
                 //Options menu, show gridlines.
                 case ID_SHOW_GRIDLINES:
