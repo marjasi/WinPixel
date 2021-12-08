@@ -174,12 +174,11 @@ void CreateDrawArea(HWND hwnd)
 }
 
 //Draws a certain draw area square.
-void DrawDrawAreaSquare(LPARAM drawItemStructPtr, int squareColorRGB, HGDIOBJ drawingBrush, HGDIOBJ drawingPen, bool drawBorder)
+void DrawDrawAreaSquare(LPDRAWITEMSTRUCT lpDIS, int squareColorRGB, HGDIOBJ drawingBrush, HGDIOBJ drawingPen, bool drawBorder)
 {
     //If we don't want a visible border, we just set the border's color to the background color of the square.
     int squareBorderColor = drawBorder ? DEFAULT_DRAW_AREA_SQUARE_BORDER_COLOR : squareColorRGB;
 
-    LPDRAWITEMSTRUCT lpDIS = (LPDRAWITEMSTRUCT) drawItemStructPtr;
     SetDCPenColor(lpDIS -> hDC, squareBorderColor);
     SetDCBrushColor(lpDIS -> hDC, squareColorRGB);
     SelectObject(lpDIS -> hDC, drawingBrush);
@@ -240,7 +239,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
             {
                 LPDRAWITEMSTRUCT lpDIS = (LPDRAWITEMSTRUCT) lParam;
                 COLORREF drawAreaSquareBgColor = DRAW_AREA_SQUARE_RGB[GetDrawAreaSquareSeqNumByHandle(lpDIS->hwndItem, DRAW_AREA_SQUARE_HANDLES, DRAW_AREA_SQUARE_NUM)];
-                DrawDrawAreaSquare(lParam, drawAreaSquareBgColor,GetStockObject(DC_BRUSH), GetStockObject(DC_PEN), DRAW_DRAW_AREA_SQUARE_BORDER);
+                DrawDrawAreaSquare(lpDIS, drawAreaSquareBgColor,GetStockObject(DC_BRUSH), GetStockObject(DC_PEN), DRAW_DRAW_AREA_SQUARE_BORDER);
                 return TRUE;
             }
             break;
