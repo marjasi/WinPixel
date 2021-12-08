@@ -6,8 +6,8 @@
 
 #include <tchar.h>
 #include <windows.h>
-#include "file_IO.h"
 #include "error_handling.h"
+#include "file_IO.h"
 #include "user_interface.h"
 
 //Custom functions.
@@ -258,9 +258,10 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 //Options menu, save art.
                 case ID_SAVE_ART:
                     {
+                        LPTSTR bmpFileName = TEXT("drawing.bmp");
                         HBITMAP hBmpFile = GetBimapHandleOfDrawArea(DRAW_AREA_WIDTH, DRAW_AREA_HEIGHT, DRAW_AREA_SQUARE_RGB);
                         PBITMAPINFO pBmpInfo = CreateBitmapInfoStruct(hwnd, hBmpFile);
-                        CreateBMPFile(hwnd, hBmpFile, hdc, TEXT("drawing.bmp"), pBmpInfo);
+                        CreateBMPFile(hwnd, hBmpFile, hdc, bmpFileName, pBmpInfo);
                     }
                     break;
                 //Options menu, show gridlines.

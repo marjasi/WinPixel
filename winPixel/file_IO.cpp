@@ -1,7 +1,7 @@
 #include <tchar.h>
 #include <windows.h>
-#include "file_IO.h"
 #include "error_handling.h"
+#include "file_IO.h"
 #include "user_interface.h"
 
 HBITMAP GetBimapHandleOfDrawArea(int bitmapWidth, int bitmapHeight, COLORREF* rgbColorValues)
@@ -10,7 +10,7 @@ HBITMAP GetBimapHandleOfDrawArea(int bitmapWidth, int bitmapHeight, COLORREF* rg
     bitmapWidth, //Bitmap width in pixels.
     bitmapHeight, //Bitmap height in pixels.
     1, //The number of color planes used in the bitmap file.
-    32, //Number of bits used to represent different colors.
+    sizeof(COLORREF) * 8, //Number of bits used to represent a color in a single pixel.
     rgbColorValues //Bitmap color data array.
     );
 }
