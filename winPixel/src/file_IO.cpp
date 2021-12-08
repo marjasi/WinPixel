@@ -29,7 +29,7 @@ PBITMAPINFO CreateBitmapInfoStruct(HWND hwnd, HBITMAP hBmp)
     //Retrieve the bitmap color format, width, and height.
     if (!GetObject(hBmp, sizeof(BITMAP), (LPSTR)&bmp))
     {
-        CreateErrorMessageBox(hwnd, TEXT("Couldn't retrieve bitmap object."));
+        CreateErrorMessageBox(hwnd, L"Couldn't retrieve bitmap object.");
         return NULL;
     }
 
@@ -65,7 +65,7 @@ PBITMAPINFO CreateBitmapInfoStruct(HWND hwnd, HBITMAP hBmp)
     // data structures).
     if (cClrBits < 24)
     {
-        pbmi = (PBITMAPINFO) LocalAlloc(LPTR, sizeof(BITMAPINFOHEADER) + sizeof(RGBQUAD) * (1<< cClrBits));
+        pbmi = (PBITMAPINFO) LocalAlloc(LPTR, sizeof(BITMAPINFOHEADER) + sizeof(RGBQUAD) * (1 << cClrBits));
     }
     //There is no RGBQUAD array for these formats: 24-bit-per-pixel or 32-bit-per-pixel.
     else
@@ -180,20 +180,20 @@ void CreateBMPFile(HWND hwnd, HBITMAP hBMP, HDC hDC, LPWSTR bmpFileName, PBITMAP
 
     if (!lpBits)
     {
-        CreateErrorMessageBox( hwnd, TEXT("Couldn't allocate memory for bmp file data."));
+        CreateErrorMessageBox( hwnd, L"Couldn't allocate memory for bmp file data.");
         return;
     }
 
     //Retrieve the color table (RGBQUAD array) and the bits (array of palette indices) from the DIB.
     if (!GetDIBits(hDC, hBMP, 0, (WORD) pbih->biHeight, lpBits, pbi, DIB_RGB_COLORS))
     {
-        CreateErrorMessageBox(hwnd, TEXT("Couldn't retrieve color table and palette indices from the DIB."));
+        CreateErrorMessageBox(hwnd, L"Couldn't retrieve color table and palette indices from the DIB.");
         GlobalFree((HGLOBAL)lpBits);
         return;
     }
 
     //Create the .BMP file.
-    hf = CreateFile((LPCSTR)bmpFileName,
+    hf = CreateFile(bmpFileName,
                    GENERIC_READ | GENERIC_WRITE,
                    (DWORD) 0,
                     NULL,
@@ -203,7 +203,7 @@ void CreateBMPFile(HWND hwnd, HBITMAP hBMP, HDC hDC, LPWSTR bmpFileName, PBITMAP
 
     if (hf == INVALID_HANDLE_VALUE)
     {
-        CreateErrorMessageBox(hwnd, TEXT("Invalid bmp file handle."));
+        CreateErrorMessageBox(hwnd, L"Invalid bmp file handle.");
         GlobalFree((HGLOBAL)lpBits);
         return;
     }
@@ -221,7 +221,7 @@ void CreateBMPFile(HWND hwnd, HBITMAP hBMP, HDC hDC, LPWSTR bmpFileName, PBITMAP
     //Copy the BITMAPFILEHEADER into the .BMP file.
     if (!WriteFile(hf, (LPVOID) &hdr, sizeof(BITMAPFILEHEADER), (LPDWORD) &dwTmp,  NULL))
     {
-        CreateErrorMessageBox(hwnd, TEXT("Couldn't copy BITMAPFILEHEADER to bmp file."));
+        CreateErrorMessageBox(hwnd, L"Couldn't copy BITMAPFILEHEADER to bmp file.");
         GlobalFree((HGLOBAL)lpBits);
         return;
     }
@@ -229,7 +229,7 @@ void CreateBMPFile(HWND hwnd, HBITMAP hBMP, HDC hDC, LPWSTR bmpFileName, PBITMAP
     //Copy the BITMAPINFOHEADER and RGBQUAD array into the file.
     if (!WriteFile(hf, (LPVOID) pbih, sizeof(BITMAPINFOHEADER) + pbih->biClrUsed * sizeof (RGBQUAD), (LPDWORD) &dwTmp, ( NULL)))
     {
-        CreateErrorMessageBox(hwnd, TEXT("Couldn't copy BITMAPFILEHEADER to bmp file."));
+        CreateErrorMessageBox(hwnd, L"Couldn't copy BITMAPFILEHEADER to bmp file.");
         GlobalFree((HGLOBAL)lpBits);
         return;
     }
@@ -239,7 +239,7 @@ void CreateBMPFile(HWND hwnd, HBITMAP hBMP, HDC hDC, LPWSTR bmpFileName, PBITMAP
     hp = lpBits;
     if (!WriteFile(hf, (LPSTR) hp, (int) cb, (LPDWORD) &dwTmp,NULL))
     {
-        CreateErrorMessageBox(hwnd, TEXT("Couldn't copy the array of palette indices to bmp file."));
+        CreateErrorMessageBox(hwnd, L"Couldn't copy the array of palette indices to bmp file.");
         GlobalFree((HGLOBAL)lpBits);
         return;
     }
@@ -247,7 +247,7 @@ void CreateBMPFile(HWND hwnd, HBITMAP hBMP, HDC hDC, LPWSTR bmpFileName, PBITMAP
     //Close the .BMP file.
     if (!CloseHandle(hf))
     {
-        CreateErrorMessageBox(hwnd, TEXT("Couldn't close the bmp file handle."));
+        CreateErrorMessageBox(hwnd, L"Couldn't close the bmp file handle.");
     }
 
     //Free memory.
