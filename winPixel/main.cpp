@@ -7,6 +7,7 @@
 #include <tchar.h>
 #include <windows.h>
 #include "file_IO.h"
+#include "error_handling.h"
 #include "user_interface.h"
 
 //Custom functions.
