@@ -11,7 +11,7 @@
 				<Option object_output="../winPixel" />
 				<Option external_deps="../../../../../Windows/System32/comctl32.dll;" />
 				<Option type="1" />
-				<Option compiler="mingw32_new" />
+				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>
@@ -25,7 +25,7 @@
 				<Option object_output="../winPixel" />
 				<Option external_deps="../../../../../Windows/System32/comctl32.dll;" />
 				<Option type="0" />
-				<Option compiler="mingw32_new" />
+				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-O2" />
 				</Compiler>

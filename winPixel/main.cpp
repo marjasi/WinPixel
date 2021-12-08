@@ -60,13 +60,6 @@ int WINAPI WinMain (HINSTANCE hThisInstance,
     MSG messages; //Here messages to the application are saved.
     WNDCLASSEX wincl; //Data structure for the windowclass.
 
-    //COM library initialization.
-    //If COM can't be initialized, quit the program.
-    if (CoInitializeEx(NULL, COINIT_APARTMENTTHREADED) != S_OK)
-    {
-        return 0;
-    }
-
     //The Window structure.
     wincl.hInstance = hThisInstance;
     wincl.lpszClassName = szClassName;
@@ -285,7 +278,6 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
             }
             break;
         case WM_DESTROY:
-            CoUninitialize(); //Uninitialize the COM library.
             PostQuitMessage (0); //Send a WM_QUIT to the message queue.
             break;
         default: //For messages that we don't deal with.
