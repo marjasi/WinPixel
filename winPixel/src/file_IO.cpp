@@ -1,4 +1,3 @@
-#include <windows.h>
 #include <shlobj.h>
 #include <objbase.h>
 #include <shobjidl.h>
@@ -99,12 +98,6 @@ PBITMAPINFO CreateBitmapInfoStruct(HWND hwnd, HBITMAP hBmp)
 
 LPWSTR ShowFileSaveWindowAndGetBmpFileLocation()
 {
-    //COM library initialization.
-    if (CoInitializeEx(NULL, COINIT_APARTMENTTHREADED) != S_OK)
-    {
-        return NULL;
-    }
-
     //This File Save Dialog only allows to save bmp files.
     COMDLG_FILTERSPEC fdSaveTypes[] = {L"Bitmap (*.bmp)", L"*.bmp"};
     PWSTR bmpFilePath = NULL;
@@ -160,7 +153,6 @@ LPWSTR ShowFileSaveWindowAndGetBmpFileLocation()
         }
     }
     pfd->Release();
-    CoUninitialize(); //Uninitialize the COM library.
     return bmpFilePath;
 }
 

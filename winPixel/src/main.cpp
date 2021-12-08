@@ -4,7 +4,6 @@
     #define UNICODE
 #endif
 
-#include <tchar.h>
 #include <windows.h>
 #include "error_handling.h"
 #include "file_IO.h"
@@ -56,6 +55,14 @@ int WINAPI WinMain (HINSTANCE hThisInstance,
                      LPSTR lpszArgument,
                      int nCmdShow)
 {
+    //Initialize the COM library.
+    //If the initialization fails, we quit the program.
+    HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+    if (!SUCCEEDED(hr))
+    {
+        return -1;
+    }
+
     HWND hwnd; //This is the handle for our window.
     MSG messages; //Here messages to the application are saved.
     WNDCLASSEX wincl; //Data structure for the windowclass.
@@ -112,6 +119,8 @@ int WINAPI WinMain (HINSTANCE hThisInstance,
         DispatchMessage(&messages);
     }
 
+    //Unintialize the COM library.
+    CoUninitialize();
     //The program return-value is 0 - The value that PostQuitMessage() gave.
     return messages.wParam;
 }
