@@ -257,3 +257,8 @@ void CreateBitmapFile(HWND hwnd, HBITMAP hBMP, HDC hDC, LPWSTR bmpFileName, PBIT
     //Free memory.
     GlobalFree((HGLOBAL)lpBits);
 }
+
+void GetBitmapPixelColorData(HBITMAP hBMP, COLORREF* rgbColorValues, int pixelAreaSize)
+{
+    GetBitmapBits(hBMP, sizeof(COLORREF) * pixelAreaSize, rgbColorValues);
+}

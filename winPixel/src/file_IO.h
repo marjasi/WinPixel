@@ -15,5 +15,7 @@ PBITMAPINFO CreateBitmapInfoStruct(HWND hwnd, HBITMAP hBmp);
 LPWSTR ShowFileSaveWindowAndGetBmpFileLocation();
 //Create a bmp file based on its bit data.
 void CreateBitmapFile(HWND hwnd, HBITMAP hBMP, HDC hDC, LPWSTR bmpFileName, PBITMAPINFO pbi);
+//Returns the specified size area pixel color values of a loaded bmp file in the passed parameter rgbColorValues.
+void GetBitmapPixelColorData(HBITMAP hBMP, COLORREF* rgbColorValues, int pixelAreaSize);
 
 #endif // FILE_IO_H_INCLUDED
