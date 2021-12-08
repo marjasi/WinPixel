@@ -270,7 +270,14 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                         LPWSTR bmpFileName = ShowFileSaveWindowAndGetBmpFileLocation();
                         HBITMAP hBmpFile = GetBimapHandleOfDrawArea(DRAW_AREA_WIDTH, DRAW_AREA_HEIGHT, DRAW_AREA_SQUARE_RGB);
                         PBITMAPINFO pBmpInfo = CreateBitmapInfoStruct(hwnd, hBmpFile);
-                        CreateBMPFile(hwnd, hBmpFile, hdc, bmpFileName, pBmpInfo);
+                        CreateBitmapFile(hwnd, hBmpFile, hdc, bmpFileName, pBmpInfo);
+                    }
+                    break;
+                //Options menu, load art from file.
+                case ID_LOAD_ART:
+                    {
+                        LPCWSTR bmpFileName = L"drawing.bmp";
+                        HBITMAP loadedBitmap = GetLoadedBitmapFileHandle(bmpFileName);
                     }
                     break;
                 //Options menu, show gridlines.

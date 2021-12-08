@@ -19,6 +19,18 @@ HBITMAP GetBimapHandleOfDrawArea(int bitmapWidth, int bitmapHeight, COLORREF* rg
     );
 }
 
+HBITMAP GetLoadedBitmapFileHandle(LPCWSTR bmpFileName)
+{
+    return (HBITMAP) LoadImageW(
+    NULL, //Handle to a module that contains the bmp file.
+    bmpFileName, //Path to bmp file.
+    IMAGE_BITMAP, //Image type.
+    0, //Width of the image to be loaded. If set to zero, loads the whole image.
+    0, //Height of the image to be loaded. If set to zero, loads the whole image.
+    LR_LOADFROMFILE //Additional flags.
+    );
+}
+
 PBITMAPINFO CreateBitmapInfoStruct(HWND hwnd, HBITMAP hBmp)
 {
     BITMAP bmp;
@@ -156,7 +168,7 @@ LPWSTR ShowFileSaveWindowAndGetBmpFileLocation()
     return bmpFilePath;
 }
 
-void CreateBMPFile(HWND hwnd, HBITMAP hBMP, HDC hDC, LPWSTR bmpFileName, PBITMAPINFO pbi)
+void CreateBitmapFile(HWND hwnd, HBITMAP hBMP, HDC hDC, LPWSTR bmpFileName, PBITMAPINFO pbi)
 {
     HANDLE hf; //File handle.
     BITMAPFILEHEADER hdr; //Bitmap file-header.
