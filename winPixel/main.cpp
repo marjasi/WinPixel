@@ -255,6 +255,10 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
             switch (LOWORD(wParam))
             {
+                //Options menu, save art.
+                case ID_SAVE_ART:
+                    GetBimapHandleOfDrawArea(DRAW_AREA_WIDTH, DRAW_AREA_HEIGHT, DRAW_AREA_SQUARE_RGB);
+                    break;
                 //Options menu, show gridlines.
                 case ID_SHOW_GRIDLINES:
                     {

@@ -4,6 +4,17 @@
 #include "error_handling.h"
 #include "user_interface.h"
 
+HBITMAP GetBimapHandleOfDrawArea(int bitmapWidth, int bitmapHeight, COLORREF* rgbColorValues)
+{
+    return CreateBitmap(
+    bitmapWidth, //Bitmap width in pixels.
+    bitmapHeight, //Bitmap height in pixels.
+    1, //The number of color planes used in the bitmap file.
+    sizeof(rgbColorValues) * 8, //Number of bits used to represent different colors.
+    rgbColorValues //Bitmap color data array.
+    );
+}
+
 PBITMAPINFO CreateBitmapInfoStruct(HWND hwnd, HBITMAP hBmp)
 {
     BITMAP bmp;
