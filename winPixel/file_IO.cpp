@@ -25,7 +25,7 @@ PBITMAPINFO CreateBitmapInfoStruct(HWND hwnd, HBITMAP hBmp)
     if (!GetObject(hBmp, sizeof(BITMAP), (LPSTR)&bmp))
     {
         CreateErrorMessageBox(hwnd, TEXT("Couldn't retrieve bitmap object."));
-        break;
+        return NULL;
     }
 
     //Convert the color format to a count of bits.
@@ -109,7 +109,7 @@ void CreateBMPFile(HWND hwnd, HBITMAP hBMP, HDC hDC, LPTSTR bmpFileName, PBITMAP
     if (!lpBits)
     {
         CreateErrorMessageBox( hwnd, TEXT("Couldn't allocate memory for bmp file data."));
-        break;
+        return;
     }
 
     //Retrieve the color table (RGBQUAD array) and the bits (array of palette indices) from the DIB.
@@ -117,7 +117,7 @@ void CreateBMPFile(HWND hwnd, HBITMAP hBMP, HDC hDC, LPTSTR bmpFileName, PBITMAP
     {
         CreateErrorMessageBox(hwnd, TEXT("Couldn't retrieve color table and palette indices from the DIB."));
         GlobalFree((HGLOBAL)lpBits);
-        break;
+        return;
     }
 
     //Create the .BMP file.
@@ -133,7 +133,7 @@ void CreateBMPFile(HWND hwnd, HBITMAP hBMP, HDC hDC, LPTSTR bmpFileName, PBITMAP
     {
         CreateErrorMessageBox(hwnd, TEXT("Invalid bmp file handle."));
         GlobalFree((HGLOBAL)lpBits);
-        break;
+        return;
     }
 
     hdr.bfType = 0x4d42; //0x42 = "B", 0x4d = "M".
@@ -151,7 +151,7 @@ void CreateBMPFile(HWND hwnd, HBITMAP hBMP, HDC hDC, LPTSTR bmpFileName, PBITMAP
     {
         CreateErrorMessageBox(hwnd, TEXT("Couldn't copy BITMAPFILEHEADER to bmp file."));
         GlobalFree((HGLOBAL)lpBits);
-        break;
+        return;
     }
 
     //Copy the BITMAPINFOHEADER and RGBQUAD array into the file.
@@ -159,7 +159,7 @@ void CreateBMPFile(HWND hwnd, HBITMAP hBMP, HDC hDC, LPTSTR bmpFileName, PBITMAP
     {
         CreateErrorMessageBox(hwnd, TEXT("Couldn't copy BITMAPFILEHEADER to bmp file."));
         GlobalFree((HGLOBAL)lpBits);
-        break;
+        return;
     }
 
     //Copy the array of color indices into the .BMP file.
@@ -169,7 +169,7 @@ void CreateBMPFile(HWND hwnd, HBITMAP hBMP, HDC hDC, LPTSTR bmpFileName, PBITMAP
     {
         CreateErrorMessageBox(hwnd, TEXT("Couldn't copy the array of palette indices to bmp file."));
         GlobalFree((HGLOBAL)lpBits);
-        break;
+        return;
     }
 
     //Close the .BMP file.
