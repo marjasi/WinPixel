@@ -9,26 +9,30 @@
 			<Target title="Debug">
 				<Option output="debugWinPixel" prefix_auto="1" extension_auto="1" />
 				<Option object_output="../winPixel" />
+				<Option external_deps="../../../../../Windows/System32/comctl32.dll;" />
 				<Option type="1" />
-				<Option compiler="gcc" />
+				<Option compiler="mingw32_new" />
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>
 				<Linker>
 					<Add library="../../../../../Windows/System32/ole32.dll" />
+					<Add library="../../../../../Windows/System32/oleaut32.dll" />
 				</Linker>
 			</Target>
 			<Target title="Release">
 				<Option output="winPixel" prefix_auto="1" extension_auto="1" />
 				<Option object_output="../winPixel" />
+				<Option external_deps="../../../../../Windows/System32/comctl32.dll;" />
 				<Option type="0" />
-				<Option compiler="gcc" />
+				<Option compiler="mingw32_new" />
 				<Compiler>
 					<Add option="-O2" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
 					<Add library="../../../../../Windows/System32/ole32.dll" />
+					<Add library="../../../../../Windows/System32/oleaut32.dll" />
 				</Linker>
 			</Target>
 		</Build>
@@ -40,6 +44,8 @@
 			<Add library="user32" />
 			<Add library="kernel32" />
 			<Add library="comctl32" />
+			<Add library="../../../../../Windows/System32/ole32.dll" />
+			<Add library="../../../../../Windows/System32/oleaut32.dll" />
 		</Linker>
 		<Unit filename="error_handling.cpp" />
 		<Unit filename="error_handling.h" />

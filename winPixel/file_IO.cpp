@@ -1,4 +1,15 @@
-#include <tchar.h>
+#include <windows.h>
+#include <shlobj.h>
+#include <objbase.h>
+#include <shobjidl.h>
+#include <shlwapi.h>
+#include <knownfolders.h>
+#include <propvarutil.h>
+#include <propkey.h>
+#include <propidl.h>
+#include <strsafe.h>
+#include <shtypes.h>
+#include <new>
 #include <windows.h>
 #include "error_handling.h"
 #include "file_IO.h"
@@ -92,7 +103,67 @@ PBITMAPINFO CreateBitmapInfoStruct(HWND hwnd, HBITMAP hBmp)
     return pbmi;
 }
 
-void CreateBMPFile(HWND hwnd, HBITMAP hBMP, HDC hDC, LPTSTR bmpFileName, PBITMAPINFO pbi)
+LPWSTR ShowFileSaveWindowAndGetBmpFileLocation()
+{
+    //This File Save Dialog only allows to save bmp files.
+    COMDLG_FILTERSPEC fdSaveTypes[] = {L"Bitmap (*.bmp)", L"*.bmp"};
+    PWSTR bmpFilePath = NULL;
+    // CoCreate the File Save Dialog object.
+    IFileDialog *pfd = NULL;
+    HRESULT hr = CoCreateInstance(CLSID_FileSaveDialog, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd));
+    if (SUCCEEDED(hr))
+    {
+        //Set the options on the dialog.
+        DWORD dwFlags;
+
+        //Before setting, always get the options first in order not to override existing options.
+        hr = pfd->GetOptions(&dwFlags);
+        if (SUCCEEDED(hr))
+        {
+            //In this case, get shell items only for file system items.
+            hr = pfd->SetOptions(dwFlags | FOS_OVERWRITEPROMPT | FOS_NOREADONLYRETURN
+                                  | FOS_PATHMUSTEXIST | FOS_NOCHANGEDIR | FOS_STRICTFILETYPES);
+            if (SUCCEEDED(hr))
+            {
+                //Set the file types to display only.
+                //Notice that this is a 1-based array.
+                hr = pfd->SetFileTypes(ARRAYSIZE(fdSaveTypes), fdSaveTypes);
+                if (SUCCEEDED(hr))
+                {
+                    //Set the selected file type index to bmp files.
+                    hr = pfd->SetFileTypeIndex(INDEX_BITMAP);
+                    if (SUCCEEDED(hr))
+                    {
+                        //Set the default extension to be ".bmp" file.
+                        hr = pfd->SetDefaultExtension(L"bmp");
+                        if (SUCCEEDED(hr))
+                        {
+                            //Show the dialog.
+                            hr = pfd->Show(NULL);
+                            if (SUCCEEDED(hr))
+                            {
+                                //Obtain the result once the user clicks the 'Save' button.
+                                //The result is an IShellItem object.
+                                IShellItem *psiResult;
+                                hr = pfd->GetResult(&psiResult);
+                                if (SUCCEEDED(hr))
+                                {
+                                    //Get the bmp file location path string.
+                                    hr = psiResult->GetDisplayName(SIGDN_FILESYSPATH, &bmpFilePath);
+                                    psiResult->Release();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    pfd->Release();
+    return bmpFilePath;
+}
+
+void CreateBMPFile(HWND hwnd, HBITMAP hBMP, HDC hDC, LPWSTR bmpFileName, PBITMAPINFO pbi)
 {
     HANDLE hf; //File handle.
     BITMAPFILEHEADER hdr; //Bitmap file-header.
@@ -121,7 +192,7 @@ void CreateBMPFile(HWND hwnd, HBITMAP hBMP, HDC hDC, LPTSTR bmpFileName, PBITMAP
     }
 
     //Create the .BMP file.
-    hf = CreateFile(bmpFileName,
+    hf = CreateFile((LPCSTR)bmpFileName,
                    GENERIC_READ | GENERIC_WRITE,
                    (DWORD) 0,
                     NULL,

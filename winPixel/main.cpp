@@ -265,7 +265,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 //Options menu, save art.
                 case ID_SAVE_ART:
                     {
-                        LPTSTR bmpFileName = TEXT("drawing.bmp");
+                        LPWSTR bmpFileName = ShowFileSaveWindowAndGetBmpFileLocation();
                         HBITMAP hBmpFile = GetBimapHandleOfDrawArea(DRAW_AREA_WIDTH, DRAW_AREA_HEIGHT, DRAW_AREA_SQUARE_RGB);
                         PBITMAPINFO pBmpInfo = CreateBitmapInfoStruct(hwnd, hBmpFile);
                         CreateBMPFile(hwnd, hBmpFile, hdc, bmpFileName, pBmpInfo);
