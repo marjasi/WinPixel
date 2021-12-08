@@ -31,7 +31,7 @@ int GetDrawAreaSquareSeqNumByHandle(HWND squareHandle, HWND* allSquareHandles, i
 LRESULT CALLBACK WindowProcedure (HWND, UINT, WPARAM, LPARAM);
 
 //Make the class name into a global variable.
-TCHAR szClassName[ ] = TEXT("CodeBlocksWindowsApp");
+TCHAR szClassName[] = TEXT("WinPixel");
 
 //Constant global variables.
 const int MAIN_WINDOW_WIDTH = 900;
@@ -95,7 +95,7 @@ int WINAPI WinMain (HINSTANCE hThisInstance,
     hwnd = CreateWindowEx (
     0, //Extended possibilites for variation.
     szClassName, //Classname.
-    TEXT("winPixel"), //Title Text.
+    TEXT("WinPixel"), //Title Text.
     WS_OVERLAPPEDWINDOW, //Default window.
     CW_USEDEFAULT, //Windows decides the position.
     CW_USEDEFAULT, //where the window ends up on the screen.
