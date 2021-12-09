@@ -14,6 +14,8 @@
 bool inRange(int value, int lowValue, int highValue);
 //Creates a draw area square that is an owner drawn button.
 HWND CreateDrawAreaSquare(int x, int y, int width, int height, int buttonId, HWND hwnd);
+//Loads the pixel color data from a file into the draw area and redraws the whole draw area.
+void LoadPixelColorDataIntoDrawArea(COLORREF* drawAreaRgb, COLORREF* loadedFileRgb);
 //Creates all draw area squares.
 void CreateDrawArea(HWND hwnd);
 //Draws a certain draw area square.
@@ -35,7 +37,7 @@ TCHAR szClassName[] = TEXT("WinPixel");
 //Constant global variables.
 const int MAIN_WINDOW_WIDTH = 900;
 const int MAIN_WINDOW_HEIGHT = 800;
-const int DRAW_AREA_SQUARE_NUM = DRAW_AREA_WIDTH*DRAW_AREA_HEIGHT;
+const int DRAW_AREA_SQUARE_NUM = DRAW_AREA_WIDTH * DRAW_AREA_HEIGHT;
 //Low and high bound values are inclusive.
 const int DRAW_AREA_LOW_VALUE = ID_DRAW_AREA_SQUARE_1;
 const int DRAW_AREA_HIGH_VALUE = DRAW_AREA_LOW_VALUE + DRAW_AREA_SQUARE_NUM - 1;
@@ -48,6 +50,7 @@ bool DRAW_DRAW_AREA_SQUARE_BORDER = true;
 HWND DRAW_AREA_SQUARE_HANDLES[DRAW_AREA_SQUARE_NUM];
 //The current color of all draw area squares.
 COLORREF DRAW_AREA_SQUARE_RGB[DRAW_AREA_SQUARE_NUM];
+COLORREF LOADED_BMP_RGB[DRAW_AREA_SQUARE_NUM];
 COLORREF CURRENT_DRAW_COLOR = RGB(47, 120, 23);
 
 int WINAPI WinMain (HINSTANCE hThisInstance,
@@ -147,6 +150,16 @@ HWND CreateDrawAreaSquare(int x, int y, int width, int height, int buttonId, HWN
     (HINSTANCE) GetWindowLong(hwnd, GWLP_HINSTANCE), //Program instance.
     NULL
     );
+}
+
+void LoadPixelColorDataIntoDrawArea(COLORREF* drawAreaRgb, COLORREF* loadedFileRgb)
+{
+    int i;
+    for (i = 0; i < DRAW_AREA_SQUARE_NUM; i++)
+    {
+        drawAreaRgb[i] = loadedFileRgb[i];
+    }
+    RedrawDrawArea();
 }
 
 //Creates all draw area squares.
@@ -268,16 +281,24 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 case ID_SAVE_ART:
                     {
                         LPWSTR bmpFileName = ShowFileSaveWindowAndGetBmpFileLocation();
-                        HBITMAP hBmpFile = GetBimapHandleOfDrawArea(DRAW_AREA_WIDTH, DRAW_AREA_HEIGHT, DRAW_AREA_SQUARE_RGB);
-                        PBITMAPINFO pBmpInfo = CreateBitmapInfoStruct(hwnd, hBmpFile);
-                        CreateBitmapFile(hwnd, hBmpFile, hdc, bmpFileName, pBmpInfo);
+                        if (bmpFileName != NULL)
+                        {
+                            HBITMAP hBmpFile = GetBimapHandleOfDrawArea(DRAW_AREA_WIDTH, DRAW_AREA_HEIGHT, DRAW_AREA_SQUARE_RGB);
+                            PBITMAPINFO pBmpInfo = CreateBitmapInfoStruct(hwnd, hBmpFile);
+                            CreateBitmapFile(hwnd, hBmpFile, hdc, bmpFileName, pBmpInfo);
+                        }
                     }
                     break;
                 //Options menu, load art from file.
                 case ID_LOAD_ART:
                     {
-                        LPCWSTR bmpFileName = L"drawing.bmp";
-                        HBITMAP loadedBitmap = GetLoadedBitmapFileHandle(bmpFileName);
+                        LPCWSTR bmpFileName = ShowFileOpenWindowAndGetBmpFileLocation();
+                        if (bmpFileName != NULL)
+                        {
+                            HBITMAP loadedBitmap = GetLoadedBitmapFileHandle(bmpFileName);
+                            GetBitmapPixelColorData(loadedBitmap, LOADED_BMP_RGB, DRAW_AREA_SQUARE_NUM);
+                            LoadPixelColorDataIntoDrawArea(DRAW_AREA_SQUARE_RGB, LOADED_BMP_RGB);
+                        }
                     }
                     break;
                 //Options menu, show gridlines.
