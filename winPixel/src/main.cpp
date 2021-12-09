@@ -292,7 +292,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 //Options menu, load art from file.
                 case ID_LOAD_ART:
                     {
-                        LPCWSTR bmpFileName = L"drawing.bmp";
+                        LPCWSTR bmpFileName = ShowFileOpenWindowAndGetBmpFileLocation();
                         if (bmpFileName != NULL)
                         {
                             HBITMAP loadedBitmap = GetLoadedBitmapFileHandle(bmpFileName);

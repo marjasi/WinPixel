@@ -168,6 +168,65 @@ LPWSTR ShowFileSaveWindowAndGetBmpFileLocation()
     return bmpFilePath;
 }
 
+LPWSTR ShowFileOpenWindowAndGetBmpFileLocation()
+{
+    //This File Load Dialog only allows to load bmp files.
+    COMDLG_FILTERSPEC fdLoadTypes[] = { L"Bitmap (*.bmp)", L"*.bmp" };
+    PWSTR bmpFilePath = NULL;
+    // CoCreate the File Load Dialog object.
+    IFileDialog* pfd = NULL;
+    HRESULT hr = CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd));
+    if (SUCCEEDED(hr))
+    {
+        //Set the options on the dialog.
+        DWORD dwFlags;
+
+        //Before setting, always get the options first in order not to override existing options.
+        hr = pfd->GetOptions(&dwFlags);
+        if (SUCCEEDED(hr))
+        {
+            //In this case, get shell items only for file system items.
+            hr = pfd->SetOptions(dwFlags | FOS_PATHMUSTEXIST | FOS_FILEMUSTEXIST | FOS_NOCHANGEDIR);
+            if (SUCCEEDED(hr))
+            {
+                //Set the file types to display only.
+                //Notice that this is a 1-based array.
+                hr = pfd->SetFileTypes(ARRAYSIZE(fdLoadTypes), fdLoadTypes);
+                if (SUCCEEDED(hr))
+                {
+                    //Set the selected file type index to bmp files.
+                    hr = pfd->SetFileTypeIndex(INDEX_BITMAP);
+                    if (SUCCEEDED(hr))
+                    {
+                        //Set the default extension to be ".bmp" file.
+                        hr = pfd->SetDefaultExtension(L"bmp");
+                        if (SUCCEEDED(hr))
+                        {
+                            //Show the dialog.
+                            hr = pfd->Show(NULL);
+                            if (SUCCEEDED(hr))
+                            {
+                                //Obtain the result once the user clicks the 'Open' button.
+                                //The result is an IShellItem object.
+                                IShellItem* psiResult;
+                                hr = pfd->GetResult(&psiResult);
+                                if (SUCCEEDED(hr))
+                                {
+                                    //Get the bmp file location path string.
+                                    hr = psiResult->GetDisplayName(SIGDN_FILESYSPATH, &bmpFilePath);
+                                    psiResult->Release();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    pfd->Release();
+    return bmpFilePath;
+}
+
 void CreateBitmapFile(HWND hwnd, HBITMAP hBMP, HDC hDC, LPWSTR bmpFileName, PBITMAPINFO pbi)
 {
     HANDLE hf; //File handle.

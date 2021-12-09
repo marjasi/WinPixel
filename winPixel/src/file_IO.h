@@ -13,6 +13,9 @@ PBITMAPINFO CreateBitmapInfoStruct(HWND hwnd, HBITMAP hBmp);
 //Shows a file save dialog and returns the selected new bmp file save location.
 //IMPORTANT: requires the COM library to be initialized on the current process.
 LPWSTR ShowFileSaveWindowAndGetBmpFileLocation();
+//Shows a file open dialog and returns the selected existing bmp file location.
+//IMPORTANT: requires the COM library to be initialized on the current process.
+LPWSTR ShowFileOpenWindowAndGetBmpFileLocation();
 //Create a bmp file based on its bit data.
 void CreateBitmapFile(HWND hwnd, HBITMAP hBMP, HDC hDC, LPWSTR bmpFileName, PBITMAPINFO pbi);
 //Returns the specified size area pixel color values of a loaded bmp file in the passed parameter rgbColorValues.
