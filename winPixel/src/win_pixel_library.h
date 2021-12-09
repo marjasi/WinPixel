@@ -9,6 +9,8 @@
 #define WIN_PIXEL_LIBRARY __declspec(dllimport)
 #endif
 
+//Constructs a PBITMAPINFO struct based on the provided bitmap header.
+extern "C" WIN_PIXEL_LIBRARY PBITMAPINFO ConstructBmpInfo(BITMAP bmp);
 //Returns the specified size area pixel color values of a loaded bmp file in the passed parameter rgbColorValues.
 extern "C" WIN_PIXEL_LIBRARY void GetBmpRgb(HBITMAP hBMP, COLORREF * rgb, int pixelCount);
 
