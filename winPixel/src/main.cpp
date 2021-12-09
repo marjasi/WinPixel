@@ -281,18 +281,24 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 case ID_SAVE_ART:
                     {
                         LPWSTR bmpFileName = ShowFileSaveWindowAndGetBmpFileLocation();
-                        HBITMAP hBmpFile = GetBimapHandleOfDrawArea(DRAW_AREA_WIDTH, DRAW_AREA_HEIGHT, DRAW_AREA_SQUARE_RGB);
-                        PBITMAPINFO pBmpInfo = CreateBitmapInfoStruct(hwnd, hBmpFile);
-                        CreateBitmapFile(hwnd, hBmpFile, hdc, bmpFileName, pBmpInfo);
+                        if (bmpFileName != NULL)
+                        {
+                            HBITMAP hBmpFile = GetBimapHandleOfDrawArea(DRAW_AREA_WIDTH, DRAW_AREA_HEIGHT, DRAW_AREA_SQUARE_RGB);
+                            PBITMAPINFO pBmpInfo = CreateBitmapInfoStruct(hwnd, hBmpFile);
+                            CreateBitmapFile(hwnd, hBmpFile, hdc, bmpFileName, pBmpInfo);
+                        }
                     }
                     break;
                 //Options menu, load art from file.
                 case ID_LOAD_ART:
                     {
                         LPCWSTR bmpFileName = L"drawing.bmp";
-                        HBITMAP loadedBitmap = GetLoadedBitmapFileHandle(bmpFileName);
-                        GetBitmapPixelColorData(loadedBitmap, LOADED_BMP_RGB, DRAW_AREA_SQUARE_NUM);
-                        LoadPixelColorDataIntoDrawArea(DRAW_AREA_SQUARE_RGB, LOADED_BMP_RGB);
+                        if (bmpFileName != NULL)
+                        {
+                            HBITMAP loadedBitmap = GetLoadedBitmapFileHandle(bmpFileName);
+                            GetBitmapPixelColorData(loadedBitmap, LOADED_BMP_RGB, DRAW_AREA_SQUARE_NUM);
+                            LoadPixelColorDataIntoDrawArea(DRAW_AREA_SQUARE_RGB, LOADED_BMP_RGB);
+                        }
                     }
                     break;
                 //Options menu, show gridlines.
