@@ -66,6 +66,15 @@ int WINAPI WinMain (HINSTANCE hThisInstance,
         return -1;
     }
 
+    //Initialize the dll library for the file_IO functions.
+    //If the initialization fails, we quit the program.
+    if (!FileIoInit())
+    {
+        //Uninitialize the COM library.
+        CoUninitialize();
+        return -2;
+    }
+
     HWND hwnd; //This is the handle for our window.
     MSG messages; //Here messages to the application are saved.
     WNDCLASSEX wincl; //Data structure for the windowclass.
@@ -91,7 +100,11 @@ int WINAPI WinMain (HINSTANCE hThisInstance,
     //Register the window class, and if it fails quit the program.
     if (!RegisterClassEx (&wincl))
     {
-        return -1;
+        //Uninitialize the COM library.
+        CoUninitialize();
+        //Uninitialize the dll library used in file_IO.
+        FileIoFree();
+        return -3;
     }
 
     //The class is registered, let's create the program.
@@ -122,8 +135,10 @@ int WINAPI WinMain (HINSTANCE hThisInstance,
         DispatchMessage(&messages);
     }
 
-    //Unintialize the COM library.
+    //Uninitialize the COM library.
     CoUninitialize();
+    //Uninitialize the dll library used in file_IO.
+    FileIoFree();
     //The program return-value is 0 - The value that PostQuitMessage() gave.
     return messages.wParam;
 }
@@ -315,7 +330,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
             }
             break;
         case WM_DESTROY:
-            PostQuitMessage (0); //Send a WM_QUIT to the message queue.
+            PostQuitMessage(0); //Send a WM_QUIT to the message queue.
             break;
         default: //For messages that we don't deal with.
             return DefWindowProc (hwnd, message, wParam, lParam);

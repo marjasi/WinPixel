@@ -8,6 +8,31 @@
 #include "file_IO.h"
 #include "user_interface.h"
 
+//Win pixel dll handle and function type definitions.
+HINSTANCE H_WIN_PIXEL_LIB;
+//ConstructBmpInfo function type.
+typedef PBITMAPINFO(__cdecl *WIN_PIXEL_LIB_CONSTR_BMP_INFO)(BITMAP);
+//GetBmpRgb function type.
+typedef void(__cdecl *WIN_PIXEL_LIB_GET_BMP_RGB)(HBITMAP, COLORREF*, int);
+
+bool FileIoInit()
+{
+    H_WIN_PIXEL_LIB = LoadLibrary(L"dll\\winPixel.dll");
+    return H_WIN_PIXEL_LIB != NULL;
+}
+
+//Loads the specified function from the win pixel dll library.
+//IMPORTANT: the return value must be cast to a defined function type.
+FARPROC LoadWinPixelDllFunction(LPCSTR functionName)
+{
+    return GetProcAddress(H_WIN_PIXEL_LIB, functionName);
+}
+
+bool FileIoFree()
+{
+    return FreeLibrary(H_WIN_PIXEL_LIB);
+}
+
 HBITMAP GetBimapHandleOfDrawArea(int bitmapWidth, int bitmapHeight, COLORREF* rgbColorValues)
 {
     return CreateBitmap(
@@ -33,9 +58,9 @@ HBITMAP GetLoadedBitmapFileHandle(LPCWSTR bmpFileName)
 
 PBITMAPINFO CreateBitmapInfoStruct(HWND hwnd, HBITMAP hBmp)
 {
+    WIN_PIXEL_LIB_CONSTR_BMP_INFO BmpInfoFunction;
     BITMAP bmp;
-    PBITMAPINFO pbmi;
-    WORD cClrBits;
+    PBITMAPINFO pbmi = NULL;
 
     //Retrieve the bitmap color format, width, and height.
     if (!GetObject(hBmp, sizeof(BITMAP), (LPSTR)&bmp))
@@ -44,67 +69,13 @@ PBITMAPINFO CreateBitmapInfoStruct(HWND hwnd, HBITMAP hBmp)
         return NULL;
     }
 
-    //Convert the color format to a count of bits.
-    cClrBits = (WORD)(bmp.bmPlanes * bmp.bmBitsPixel);
-
-    if (cClrBits == 1)
+    //Load bmp info struct creation function from the win pixel dll library.
+    BmpInfoFunction = (WIN_PIXEL_LIB_CONSTR_BMP_INFO)LoadWinPixelDllFunction("ConstructBmpInfo");
+    if (BmpInfoFunction != NULL)
     {
-        cClrBits = 1;
+        pbmi = (BmpInfoFunction)(bmp);
     }
-    else if (cClrBits <= 4)
-    {
-        cClrBits = 4;
-    }
-    else if (cClrBits <= 8)
-    {
-        cClrBits = 8;
-    }
-    else if (cClrBits <= 16)
-    {
-        cClrBits = 16;
-    }
-    else if (cClrBits <= 24)
-    {
-        cClrBits = 24;
-    }
-    else
-    {
-        cClrBits = 32;
-    }
-
-    //Allocate memory for the BITMAPINFO structure (this structure contains a BITMAPINFOHEADER structure and an array of RGBQUAD
-    // data structures).
-    if (cClrBits < 24)
-    {
-        pbmi = (PBITMAPINFO) LocalAlloc(LPTR, sizeof(BITMAPINFOHEADER) + sizeof(RGBQUAD) * (1 << cClrBits));
-    }
-    //There is no RGBQUAD array for these formats: 24-bit-per-pixel or 32-bit-per-pixel.
-    else
-    {
-        pbmi = (PBITMAPINFO) LocalAlloc(LPTR, sizeof(BITMAPINFOHEADER));
-    }
-
-    //Initialize the fields in the BITMAPINFO structure.
-    pbmi->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-    pbmi->bmiHeader.biWidth = bmp.bmWidth;
-    pbmi->bmiHeader.biHeight = bmp.bmHeight;
-    pbmi->bmiHeader.biPlanes = bmp.bmPlanes;
-    pbmi->bmiHeader.biBitCount = bmp.bmBitsPixel;
-
-    if (cClrBits < 24)
-    {
-        pbmi->bmiHeader.biClrUsed = (1<<cClrBits);
-    }
-
-    //If the bitmap is not compressed, set the BI_RGB flag.
-    pbmi->bmiHeader.biCompression = BI_RGB;
-
-    //Compute the number of bytes in the array of color indices and store the result in biSizeImage.
-    //The width must be DWORD aligned unless the bitmap is RLE compressed.
-    pbmi->bmiHeader.biSizeImage = ((pbmi->bmiHeader.biWidth * cClrBits +31) & ~31) / 8 * pbmi->bmiHeader.biHeight;
-
-    //Set biClrImportant to 0, indicating that all of the device colors are important.
-    pbmi->bmiHeader.biClrImportant = 0;
+    
     return pbmi;
 }
 
@@ -319,5 +290,12 @@ void CreateBitmapFile(HWND hwnd, HBITMAP hBMP, HDC hDC, LPWSTR bmpFileName, PBIT
 
 void GetBitmapPixelColorData(HBITMAP hBMP, COLORREF* rgbColorValues, int pixelAreaSize)
 {
-    GetBitmapBits(hBMP, sizeof(COLORREF) * pixelAreaSize, rgbColorValues);
+    WIN_PIXEL_LIB_GET_BMP_RGB BmpRgbFunction;
+    
+    //Load bmp pixel color data function from the win pixel dll library.
+    BmpRgbFunction = (WIN_PIXEL_LIB_GET_BMP_RGB)LoadWinPixelDllFunction("GetBmpRgb");
+    if (BmpRgbFunction != NULL)
+    {
+        (BmpRgbFunction)(hBMP, rgbColorValues, pixelAreaSize);
+    }
 }
