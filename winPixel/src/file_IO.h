@@ -4,6 +4,14 @@
 //File type indices
 #define INDEX_BITMAP 1
 
+//Initializes the dll library used in this file.
+//Returns true if the initialization was successful, false otherwise.
+//IMPORTANT: this must be called at the start of the program before using any of the below functions.
+bool FileIoInit();
+//Frees the dll library used in this file.
+//Returns true if the dll library was freed successfully, false otherwise.
+//IMPORTANT: this must be called if FileIoInit() was called before terminating the program.
+bool FileIoFree();
 //Returns a bitmap file handle for the current color data in the draw area.
 HBITMAP GetBimapHandleOfDrawArea(int bitmapWidth, int bitmapHeight, COLORREF* rgbColorValues);
 //Loads a bmp file and returns its handle.

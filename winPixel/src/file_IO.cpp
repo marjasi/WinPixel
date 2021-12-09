@@ -8,6 +8,28 @@
 #include "file_IO.h"
 #include "user_interface.h"
 
+//Win pixel dll handle and function type definitions.
+HINSTANCE H_WIN_PIXEL_LIB;
+typedef void(__cdecl *WIN_PIXEL_LIB_BMP_RGB)(HBITMAP, COLORREF*, int);
+
+bool FileIoInit()
+{
+    H_WIN_PIXEL_LIB = LoadLibrary(L"dll\\winPixel.dll");
+    return H_WIN_PIXEL_LIB != NULL;
+}
+
+//Loads the specified function from the win pixel dll library.
+//IMPORTANT: the return value must be cast to a defined function type.
+FARPROC LoadWinPixelDllFunction(LPCSTR functionName)
+{
+    return GetProcAddress(H_WIN_PIXEL_LIB, functionName);
+}
+
+bool FileIoFree()
+{
+    return FreeLibrary(H_WIN_PIXEL_LIB);
+}
+
 HBITMAP GetBimapHandleOfDrawArea(int bitmapWidth, int bitmapHeight, COLORREF* rgbColorValues)
 {
     return CreateBitmap(
@@ -319,5 +341,12 @@ void CreateBitmapFile(HWND hwnd, HBITMAP hBMP, HDC hDC, LPWSTR bmpFileName, PBIT
 
 void GetBitmapPixelColorData(HBITMAP hBMP, COLORREF* rgbColorValues, int pixelAreaSize)
 {
-    GetBitmapBits(hBMP, sizeof(COLORREF) * pixelAreaSize, rgbColorValues);
+    WIN_PIXEL_LIB_BMP_RGB BmpRgbFunction;
+    
+    //Load bmp pixel color data function from the win pixel dll library.
+    BmpRgbFunction = (WIN_PIXEL_LIB_BMP_RGB)LoadWinPixelDllFunction("GetBmpRgb");
+    if (BmpRgbFunction != NULL)
+    {
+        (BmpRgbFunction)(hBMP, rgbColorValues, pixelAreaSize);
+    }
 }
