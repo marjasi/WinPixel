@@ -11,13 +11,21 @@
 
 //Custom functions.
 //Checks whether a given value is in the range with the inclusive low and high values.
-bool inRange(int value, int lowValue, int highValue);
+bool InRange(int value, int lowValue, int highValue);
+//Returns true if the passed handle is a handle of a draw area square, otherwise returns false.
+bool HandleIsDrawAreaSquareHandle(HWND squareHandle, HWND* allSquareHandles, int drawAreaSquareNum);
+//Returns true if the passed handle is a handle of the current color square, otherwise returns false.
+bool HandleIsCurrentColorSquareHandle(HWND squareHandle, HWND currentColorSquareHandle);
 //Creates a draw area square that is an owner drawn button.
 HWND CreateDrawAreaSquare(int x, int y, int width, int height, int buttonId, HWND hwnd);
 //Loads the pixel color data from a file into the draw area and redraws the whole draw area.
 void LoadPixelColorDataIntoDrawArea(COLORREF* drawAreaRgb, COLORREF* loadedFileRgb);
+//Creates the current color square.
+void CreateCurrentColorSquare(HWND hwnd);
 //Creates all draw area squares.
 void CreateDrawArea(HWND hwnd);
+//Draws the current color square
+void DrawCurrentColorSquare(LPDRAWITEMSTRUCT lpDIS, int squareColorRGB, HGDIOBJ drawingBrush, HGDIOBJ drawingPen, int squareBorderColor);
 //Draws a certain draw area square.
 void DrawDrawAreaSquare(LPARAM drawItemStructPtr, int squareColorRGB, HGDIOBJ drawingBrush, bool drawBorder);
 //Redraws a certain draw area square.
@@ -45,12 +53,17 @@ const int DRAW_AREA_HIGH_VALUE = DRAW_AREA_LOW_VALUE + DRAW_AREA_SQUARE_NUM - 1;
 //Global variables.
 int DEFAULT_DRAW_AREA_SQUARE_COLOR = RGB(255, 255, 255);
 int DEFAULT_DRAW_AREA_SQUARE_BORDER_COLOR = RGB(0, 0, 0);
+int DEFAULT_CURRENT_COLOR_SQUARE_BORDER_COLOR = RGB(0, 0, 0);
 bool DRAW_DRAW_AREA_SQUARE_BORDER = true;
+//Current color square handle.
+HWND CURRENT_COLOR_SQUARE_HANDLE;
 //All the draw area square handles.
 HWND DRAW_AREA_SQUARE_HANDLES[DRAW_AREA_SQUARE_NUM];
 //The current color of all draw area squares.
 COLORREF DRAW_AREA_SQUARE_RGB[DRAW_AREA_SQUARE_NUM];
+//A loaded bmp file rgb color values.
 COLORREF LOADED_BMP_RGB[DRAW_AREA_SQUARE_NUM];
+//The current draw color.
 COLORREF CURRENT_DRAW_COLOR = RGB(47, 120, 23);
 
 int WINAPI WinMain (HINSTANCE hThisInstance,
@@ -144,9 +157,30 @@ int WINAPI WinMain (HINSTANCE hThisInstance,
 }
 
 //Checks whether a given value is in the range with the inclusive low and high values.
-bool inRange(int value, int lowValue, int highValue)
+bool InRange(int value, int lowValue, int highValue)
 {
     return (lowValue <= value && value <= highValue);
+}
+
+//Returns true if the passed handle is a handle of a draw area square, otherwise returns false.
+bool HandleIsDrawAreaSquareHandle(HWND squareHandle, HWND* allSquareHandles, int drawAreaSquareNum)
+{
+    int i;
+    for (i = 0; i < drawAreaSquareNum; i++)
+    {
+        if (allSquareHandles[i] == squareHandle)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+//Returns true if the passed handle is a handle of the current color square, otherwise returns false.
+bool HandleIsCurrentColorSquareHandle(HWND squareHandle, HWND currentColorSquareHandle)
+{
+    return squareHandle == currentColorSquareHandle;
 }
 
 //Creates a draw area square that is an owner drawn button.
@@ -154,7 +188,7 @@ HWND CreateDrawAreaSquare(int x, int y, int width, int height, int buttonId, HWN
 {
     return CreateWindow(
     TEXT("BUTTON"), //The draw area square is a button.
-    TEXT("HELLO"), //No button text.
+    L"", //No button text.
     WS_VISIBLE | WS_CHILD | BS_OWNERDRAW, //Styles.
     x, //x axis position.
     y, //y axis position.
@@ -167,6 +201,7 @@ HWND CreateDrawAreaSquare(int x, int y, int width, int height, int buttonId, HWN
     );
 }
 
+//Loads the pixel color data from a file into the draw area and redraws the whole draw area.
 void LoadPixelColorDataIntoDrawArea(COLORREF* drawAreaRgb, COLORREF* loadedFileRgb)
 {
     int i;
@@ -175,6 +210,13 @@ void LoadPixelColorDataIntoDrawArea(COLORREF* drawAreaRgb, COLORREF* loadedFileR
         drawAreaRgb[i] = loadedFileRgb[i];
     }
     RedrawDrawArea();
+}
+
+//Creates the current color square.
+void CreateCurrentColorSquare(HWND hwnd)
+{
+    CURRENT_COLOR_SQUARE_HANDLE = CreateDrawAreaSquare(DRAW_AREA_WIDTH * DRAW_AREA_SQUARE_WIDTH + 35,
+        DRAW_AREA_TOP_LEFT_Y + 5, CURRENT_COLOR_WIDTH, CURRENT_COLOR_HEIGHT, ID_CURRENT_COLOR, hwnd);
 }
 
 //Creates all draw area squares.
@@ -208,6 +250,17 @@ void CreateDrawArea(HWND hwnd)
         //Set the default square color for drawing.
         DRAW_AREA_SQUARE_RGB[i] = DEFAULT_DRAW_AREA_SQUARE_COLOR;
     }
+}
+
+//Draws the current color square
+void DrawCurrentColorSquare(LPDRAWITEMSTRUCT lpDIS, int squareColorRGB, HGDIOBJ drawingBrush, HGDIOBJ drawingPen, int squareBorderColor)
+{
+    SetDCPenColor(lpDIS->hDC, squareBorderColor);
+    SetDCBrushColor(lpDIS->hDC, squareColorRGB);
+    SelectObject(lpDIS->hDC, drawingBrush);
+    SelectObject(lpDIS->hDC, drawingPen);
+    Rectangle(lpDIS->hDC, lpDIS->rcItem.left, lpDIS->rcItem.top,
+        lpDIS->rcItem.right, lpDIS->rcItem.bottom);
 }
 
 //Draws a certain draw area square.
@@ -264,6 +317,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
     switch (message) //Handle the messages.
     {
         case WM_CREATE:
+            CreateCurrentColorSquare(hwnd);
             CreateDrawArea(hwnd);
             break;
         case WM_PAINT:
@@ -275,14 +329,23 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
         case WM_DRAWITEM:
             {
                 LPDRAWITEMSTRUCT lpDIS = (LPDRAWITEMSTRUCT) lParam;
-                COLORREF drawAreaSquareBgColor = DRAW_AREA_SQUARE_RGB[GetDrawAreaSquareSeqNumByHandle(lpDIS->hwndItem, DRAW_AREA_SQUARE_HANDLES, DRAW_AREA_SQUARE_NUM)];
-                DrawDrawAreaSquare(lpDIS, drawAreaSquareBgColor,GetStockObject(DC_BRUSH), GetStockObject(DC_PEN), DRAW_DRAW_AREA_SQUARE_BORDER);
+                //Redraw a draw area square.
+                if (HandleIsDrawAreaSquareHandle(lpDIS->hwndItem, DRAW_AREA_SQUARE_HANDLES, DRAW_AREA_SQUARE_NUM))
+                {
+                    COLORREF drawAreaSquareBgColor = DRAW_AREA_SQUARE_RGB[GetDrawAreaSquareSeqNumByHandle(lpDIS->hwndItem, DRAW_AREA_SQUARE_HANDLES, DRAW_AREA_SQUARE_NUM)];
+                    DrawDrawAreaSquare(lpDIS, drawAreaSquareBgColor, GetStockObject(DC_BRUSH), GetStockObject(DC_PEN), DRAW_DRAW_AREA_SQUARE_BORDER);
+                } 
+                else if (HandleIsCurrentColorSquareHandle(lpDIS->hwndItem, CURRENT_COLOR_SQUARE_HANDLE))
+                {
+                    //Redraw the current color square.
+                    DrawCurrentColorSquare(lpDIS, CURRENT_DRAW_COLOR, GetStockObject(DC_BRUSH), GetStockObject(DC_PEN), DEFAULT_CURRENT_COLOR_SQUARE_BORDER_COLOR);
+                }
                 return TRUE;
             }
             break;
         case WM_COMMAND:
             //A draw area square has been clicked.
-            if (inRange(LOWORD(wParam), DRAW_AREA_LOW_VALUE, DRAW_AREA_HIGH_VALUE))
+            if (InRange(LOWORD(wParam), DRAW_AREA_LOW_VALUE, DRAW_AREA_HIGH_VALUE))
             {
                 HWND drawAreaSquareHandle = GetDlgItem(hwnd, LOWORD(wParam));
                 int drawAreaSquareSeqNum = GetDrawAreaSquareSeqNumByHandle(drawAreaSquareHandle, DRAW_AREA_SQUARE_HANDLES, DRAW_AREA_SQUARE_NUM);
