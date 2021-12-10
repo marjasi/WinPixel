@@ -9,15 +9,20 @@
 			<Target title="Debug">
 				<Option output="debugWinPixel" prefix_auto="1" extension_auto="1" />
 				<Option object_output="../winPixel" />
+				<Option external_deps="../../../../../Windows/System32/comctl32.dll;" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>
+				<Linker>
+					<Add library="../../../../../Windows/System32/ole32.dll" />
+				</Linker>
 			</Target>
 			<Target title="Release">
 				<Option output="winPixel" prefix_auto="1" extension_auto="1" />
 				<Option object_output="../winPixel" />
+				<Option external_deps="../../../../../Windows/System32/comctl32.dll;" />
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Compiler>
@@ -25,6 +30,7 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
+					<Add library="../../../../../Windows/System32/ole32.dll" />
 				</Linker>
 			</Target>
 		</Build>
@@ -36,10 +42,15 @@
 			<Add library="user32" />
 			<Add library="kernel32" />
 			<Add library="comctl32" />
+			<Add library="../../../../../Windows/System32/ole32.dll" />
 		</Linker>
-		<Unit filename="main.cpp" />
-		<Unit filename="user_interface.h" />
-		<Unit filename="user_interface.rc">
+		<Unit filename="src/error_handling.cpp" />
+		<Unit filename="src/error_handling.h" />
+		<Unit filename="src/file_IO.cpp" />
+		<Unit filename="src/file_IO.h" />
+		<Unit filename="src/main.cpp" />
+		<Unit filename="src/user_interface.h" />
+		<Unit filename="src/user_interface.rc">
 			<Option compilerVar="WINDRES" />
 		</Unit>
 		<Extensions>
