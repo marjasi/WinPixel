@@ -39,6 +39,10 @@ void DrawDrawAreaSquare(LPDRAWITEMSTRUCT lpDIS, int squareColorRGB, HGDIOBJ draw
 void RedrawDrawAreaSquare(HWND squareHandle);
 //Redraws all draw area squares.
 void RedrawDrawArea();
+//Takes the rgb values of the draw area rgbValues and stores them in bgr format in bgrValues.
+void FillBgrColorsOfDrawArea(COLORREF* rgbValues, COLORREF* bgrValues, int drawAreaSquareNum);
+//Takes the bgr values from a loaded bitmap file loadedFilebgrValues and stores them in rgb format in loadedFilergbValues.
+void FillRgbColorsOfLoadedFile(COLORREF* loadedFileBgrValues, COLORREF* loadedFileRgbValues, int drawAreaSquareNum);
 //Returns the color palette oval sequence number based on its handle.
 //Returns -1 if there is no such color palette oval with the specified handle value.
 int GetColorPaletteOvalSeqNumByHandle(HWND ovalHandle, HWND* allOvalHandles, int colorPaletteOvalNum);
@@ -81,10 +85,16 @@ HWND COLOR_PALETTE_OVAL_HANDLES[COLOR_PALETTE_OVAL_NUM];
 HWND DRAW_AREA_SQUARE_HANDLES[DRAW_AREA_SQUARE_NUM];
 //The current color of all color palette ovals.
 COLORREF COLOR_PALETTE_OVAL_RGB[COLOR_PALETTE_OVAL_NUM];
-//The current color of all draw area squares.
+//The current color of all draw area squares in rgb format.
 COLORREF DRAW_AREA_SQUARE_RGB[DRAW_AREA_SQUARE_NUM];
+//The current color of all draw area squares in bgr format.
+//Used to save the draw area into a bmp file, because by defauts the functions used for saving
+// a bmp file operate with bgr.
+COLORREF DRAW_AREA_SQUARE_BGR[DRAW_AREA_SQUARE_NUM];
 //A loaded bmp file rgb color values.
 COLORREF LOADED_BMP_RGB[DRAW_AREA_SQUARE_NUM];
+//A loaded bmp file bgr color values.
+COLORREF LOADED_BMP_BGR[DRAW_AREA_SQUARE_NUM];
 //The current draw color.
 //It is the color black by default.
 COLORREF CURRENT_DRAW_COLOR = RGB(0, 0, 0);
@@ -400,6 +410,30 @@ void RedrawDrawArea()
     }
 }
 
+//Takes the rgb values of the draw area rgbValues and stores them in bgr format in bgrValues.
+void FillBgrColorsOfDrawArea(COLORREF* rgbValues, COLORREF* bgrValues, int drawAreaSquareNum)
+{
+    int i;
+    for (i = 0; i < drawAreaSquareNum; i++)
+    {
+        bgrValues[i] = RGB(GetBValue(rgbValues[i]), GetGValue(rgbValues[i]), GetRValue(rgbValues[i]));
+    }
+}
+
+//Takes the bgr values from a loaded bitmap file loadedFilebgrValues and stores them in rgb format in loadedFilergbValues.
+void FillRgbColorsOfLoadedFile(COLORREF* loadedFileBgrValues, COLORREF* loadedFileRgbValues, int drawAreaSquareNum)
+{
+    int i;
+    for (i = 0; i < drawAreaSquareNum; i++)
+    {
+        //GetBValue is supposed to be used with rgb balues and in that case it does return the blue color channel value.
+        //But if you use it with bgr it will return the red channel value, because GetBValue actually returns the last channel value
+        // of a given color format (rgb, bgr or other).
+        //GetRValue behaves the same except it returns the first channel value.
+        loadedFileRgbValues[i] = RGB(GetBValue(loadedFileBgrValues[i]), GetGValue(loadedFileBgrValues[i]), GetRValue(loadedFileBgrValues[i]));
+    }
+}
+
 //Returns the color palette oval sequence number based on its handle.
 //Returns -1 if there is no such color palette oval with the specified handle value.
 int GetColorPaletteOvalSeqNumByHandle(HWND ovalHandle, HWND* allOvalHandles, int colorPaletteOvalNum)
@@ -501,7 +535,10 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                         LPWSTR bmpFileName = ShowFileSaveWindowAndGetBmpFileLocation();
                         if (bmpFileName != NULL)
                         {
-                            HBITMAP hBmpFile = GetBimapHandleOfDrawArea(DRAW_AREA_WIDTH, DRAW_AREA_HEIGHT, DRAW_AREA_SQUARE_RGB);
+                            //Convert rgb values of the draw area to bgr values.
+                            FillBgrColorsOfDrawArea(DRAW_AREA_SQUARE_RGB, DRAW_AREA_SQUARE_BGR, DRAW_AREA_SQUARE_NUM);
+                            //Use bgr values which represent the rgb values of the draw area to save the bmp file.
+                            HBITMAP hBmpFile = GetBimapHandleOfDrawArea(DRAW_AREA_WIDTH, DRAW_AREA_HEIGHT, DRAW_AREA_SQUARE_BGR);
                             PBITMAPINFO pBmpInfo = CreateBitmapInfoStruct(hwnd, hBmpFile);
                             CreateBitmapFile(hwnd, hBmpFile, hdc, bmpFileName, pBmpInfo);
                         }
@@ -514,7 +551,8 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                         if (bmpFileName != NULL)
                         {
                             HBITMAP loadedBitmap = GetLoadedBitmapFileHandle(bmpFileName);
-                            GetBitmapPixelColorData(loadedBitmap, LOADED_BMP_RGB, DRAW_AREA_SQUARE_NUM);
+                            GetBitmapPixelColorData(loadedBitmap, LOADED_BMP_BGR, DRAW_AREA_SQUARE_NUM);
+                            FillRgbColorsOfLoadedFile(LOADED_BMP_BGR, LOADED_BMP_RGB, DRAW_AREA_SQUARE_NUM);
                             LoadPixelColorDataIntoDrawArea(DRAW_AREA_SQUARE_RGB, LOADED_BMP_RGB);
                         }
                     }
