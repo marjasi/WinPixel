@@ -70,7 +70,7 @@ PBITMAPINFO CreateBitmapInfoStruct(HWND hwnd, HBITMAP hBmp)
     }
 
     //Load bmp info struct creation function from the win pixel dll library.
-    BmpInfoFunction = (WIN_PIXEL_LIB_CONSTR_BMP_INFO)LoadWinPixelDllFunction("ConstructBmpInfo");
+    BmpInfoFunction = (WIN_PIXEL_LIB_CONSTR_BMP_INFO) LoadWinPixelDllFunction("ConstructBmpInfo");
     if (BmpInfoFunction != NULL)
     {
         pbmi = (BmpInfoFunction)(bmp);
@@ -293,7 +293,7 @@ void GetBitmapPixelColorData(HBITMAP hBMP, COLORREF* rgbColorValues, int pixelAr
     WIN_PIXEL_LIB_GET_BMP_RGB BmpRgbFunction;
     
     //Load bmp pixel color data function from the win pixel dll library.
-    BmpRgbFunction = (WIN_PIXEL_LIB_GET_BMP_RGB)LoadWinPixelDllFunction("GetBmpRgb");
+    BmpRgbFunction = (WIN_PIXEL_LIB_GET_BMP_RGB) LoadWinPixelDllFunction("GetBmpRgb");
     if (BmpRgbFunction != NULL)
     {
         (BmpRgbFunction)(hBMP, rgbColorValues, pixelAreaSize);

@@ -4,6 +4,7 @@
     #define UNICODE
 #endif
 
+#include <iostream>
 #include <windows.h>
 #include "error_handling.h"
 #include "file_IO.h"
@@ -11,19 +12,36 @@
 
 //Custom functions.
 //Checks whether a given value is in the range with the inclusive low and high values.
-bool inRange(int value, int lowValue, int highValue);
+bool InRange(int value, int lowValue, int highValue);
+//Returns true if the passed handle is a handle of the current color square, otherwise returns false.
+bool HandleIsCurrentColorSquareHandle(HWND squareHandle, HWND currentColorSquareHandle);
+//Returns true if the passed handle is a handle of a color palette oval, otherwise returns false.
+bool HandleIsColorPaletteOvalHandle(HWND ovalHandle, HWND* allOvalHandles, int colorPaletteOvalNum);
+//Returns true if the passed handle is a handle of a draw area square, otherwise returns false.
+bool HandleIsDrawAreaSquareHandle(HWND squareHandle, HWND* allSquareHandles, int drawAreaSquareNum);
 //Creates a draw area square that is an owner drawn button.
 HWND CreateDrawAreaSquare(int x, int y, int width, int height, int buttonId, HWND hwnd);
 //Loads the pixel color data from a file into the draw area and redraws the whole draw area.
 void LoadPixelColorDataIntoDrawArea(COLORREF* drawAreaRgb, COLORREF* loadedFileRgb);
+//Creates the current color square.
+void CreateCurrentColorSquare(HWND hwnd);
+//Creates all color palette ovals.
+void CreateColorPalette(HWND hwnd);
 //Creates all draw area squares.
 void CreateDrawArea(HWND hwnd);
+//Draws the current color square
+void DrawCurrentColorSquare(LPDRAWITEMSTRUCT lpDIS, int squareColorRGB, HGDIOBJ drawingBrush, HGDIOBJ drawingPen, int squareBorderColor);
+//Draws a certain color palette oval.
+void DrawColorPaletteOval(LPDRAWITEMSTRUCT lpDIS, int ovalColorRGB, HGDIOBJ drawingBrush, HGDIOBJ drawingPen, int ovalBorderColor);
 //Draws a certain draw area square.
-void DrawDrawAreaSquare(LPARAM drawItemStructPtr, int squareColorRGB, HGDIOBJ drawingBrush, bool drawBorder);
+void DrawDrawAreaSquare(LPDRAWITEMSTRUCT lpDIS, int squareColorRGB, HGDIOBJ drawingBrush, HGDIOBJ drawingPen, bool drawBorder);
 //Redraws a certain draw area square.
 void RedrawDrawAreaSquare(HWND squareHandle);
 //Redraws all draw area squares.
 void RedrawDrawArea();
+//Returns the color palette oval sequence number based on its handle.
+//Returns -1 if there is no such color palette oval with the specified handle value.
+int GetColorPaletteOvalSeqNumByHandle(HWND ovalHandle, HWND* allOvalHandles, int colorPaletteOvalNum);
 //Returns the draw area square sequence number based on its handle.
 //Returns -1 if there is no such draw area square with the specified handle value.
 int GetDrawAreaSquareSeqNumByHandle(HWND squareHandle, HWND* allSquareHandles, int drawAreaSquareNum);
@@ -38,20 +56,38 @@ TCHAR szClassName[] = TEXT("WinPixel");
 const int MAIN_WINDOW_WIDTH = 900;
 const int MAIN_WINDOW_HEIGHT = 800;
 const int DRAW_AREA_SQUARE_NUM = DRAW_AREA_WIDTH * DRAW_AREA_HEIGHT;
+const int COLOR_PALETTE_OVAL_NUM = COLOR_PALETTE_WIDTH * COLOR_PALETTE_HEIGHT;
 //Low and high bound values are inclusive.
+const int COLOR_PALETTE_LOW_VALUE = ID_COLOR_PALETTE_OVAL_1;
+const int COLOR_PALETTE_HIGH_VALUE = COLOR_PALETTE_LOW_VALUE + COLOR_PALETTE_OVAL_NUM -1;
 const int DRAW_AREA_LOW_VALUE = ID_DRAW_AREA_SQUARE_1;
 const int DRAW_AREA_HIGH_VALUE = DRAW_AREA_LOW_VALUE + DRAW_AREA_SQUARE_NUM - 1;
 
 //Global variables.
 int DEFAULT_DRAW_AREA_SQUARE_COLOR = RGB(255, 255, 255);
 int DEFAULT_DRAW_AREA_SQUARE_BORDER_COLOR = RGB(0, 0, 0);
+int DEFAULT_CURRENT_COLOR_SQUARE_BORDER_COLOR = RGB(0, 0, 0);
+int DEFAULT_COLOR_PALETTE_OVAL_BORDER_COLOR = RGB(0, 0, 0);
+int CURRENT_COLOR_SQUARE_X = DRAW_AREA_WIDTH * DRAW_AREA_SQUARE_WIDTH + 40;
+int CURRENT_COLOR_SQUARE_Y = DRAW_AREA_TOP_LEFT_Y + 5;
+int COLOR_PALETTE_TOP_LEFT_X = CURRENT_COLOR_SQUARE_X - 5;
+int COLOR_PALETTE_TOP_LEFT_Y = CURRENT_COLOR_SQUARE_Y + CURRENT_COLOR_HEIGHT + COLOR_PALETTE_OVAL_SPACING_VERTICAL;
 bool DRAW_DRAW_AREA_SQUARE_BORDER = true;
+//Current color square handle.
+HWND CURRENT_COLOR_SQUARE_HANDLE;
+//All the color palette oval handles.
+HWND COLOR_PALETTE_OVAL_HANDLES[COLOR_PALETTE_OVAL_NUM];
 //All the draw area square handles.
 HWND DRAW_AREA_SQUARE_HANDLES[DRAW_AREA_SQUARE_NUM];
+//The current color of all color palette ovals.
+COLORREF COLOR_PALETTE_OVAL_RGB[COLOR_PALETTE_OVAL_NUM];
 //The current color of all draw area squares.
 COLORREF DRAW_AREA_SQUARE_RGB[DRAW_AREA_SQUARE_NUM];
+//A loaded bmp file rgb color values.
 COLORREF LOADED_BMP_RGB[DRAW_AREA_SQUARE_NUM];
-COLORREF CURRENT_DRAW_COLOR = RGB(47, 120, 23);
+//The current draw color.
+//It is the color black by default.
+COLORREF CURRENT_DRAW_COLOR = RGB(0, 0, 0);
 
 int WINAPI WinMain (HINSTANCE hThisInstance,
                      HINSTANCE hPrevInstance,
@@ -144,9 +180,45 @@ int WINAPI WinMain (HINSTANCE hThisInstance,
 }
 
 //Checks whether a given value is in the range with the inclusive low and high values.
-bool inRange(int value, int lowValue, int highValue)
+bool InRange(int value, int lowValue, int highValue)
 {
     return (lowValue <= value && value <= highValue);
+}
+
+//Returns true if the passed handle is a handle of the current color square, otherwise returns false.
+bool HandleIsCurrentColorSquareHandle(HWND squareHandle, HWND currentColorSquareHandle)
+{
+    return squareHandle == currentColorSquareHandle;
+}
+
+//Returns true if the passed handle is a handle of a color palette oval, otherwise returns false.
+bool HandleIsColorPaletteOvalHandle(HWND ovalHandle, HWND* allOvalHandles, int colorPaletteOvalNum)
+{
+    int i;
+    for (i = 0; i < colorPaletteOvalNum; i++)
+    {
+        if (allOvalHandles[i] == ovalHandle)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+//Returns true if the passed handle is a handle of a draw area square, otherwise returns false.
+bool HandleIsDrawAreaSquareHandle(HWND squareHandle, HWND* allSquareHandles, int drawAreaSquareNum)
+{
+    int i;
+    for (i = 0; i < drawAreaSquareNum; i++)
+    {
+        if (allSquareHandles[i] == squareHandle)
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 //Creates a draw area square that is an owner drawn button.
@@ -154,7 +226,7 @@ HWND CreateDrawAreaSquare(int x, int y, int width, int height, int buttonId, HWN
 {
     return CreateWindow(
     TEXT("BUTTON"), //The draw area square is a button.
-    TEXT("HELLO"), //No button text.
+    L"", //No button text.
     WS_VISIBLE | WS_CHILD | BS_OWNERDRAW, //Styles.
     x, //x axis position.
     y, //y axis position.
@@ -167,6 +239,7 @@ HWND CreateDrawAreaSquare(int x, int y, int width, int height, int buttonId, HWN
     );
 }
 
+//Loads the pixel color data from a file into the draw area and redraws the whole draw area.
 void LoadPixelColorDataIntoDrawArea(COLORREF* drawAreaRgb, COLORREF* loadedFileRgb)
 {
     int i;
@@ -177,11 +250,75 @@ void LoadPixelColorDataIntoDrawArea(COLORREF* drawAreaRgb, COLORREF* loadedFileR
     RedrawDrawArea();
 }
 
+//Creates the current color square.
+void CreateCurrentColorSquare(HWND hwnd)
+{
+    CURRENT_COLOR_SQUARE_HANDLE = CreateDrawAreaSquare(CURRENT_COLOR_SQUARE_X,
+        CURRENT_COLOR_SQUARE_Y, CURRENT_COLOR_WIDTH, CURRENT_COLOR_HEIGHT, ID_CURRENT_COLOR, hwnd);
+}
+
+//Creates all color palette ovals.
+void CreateColorPalette(HWND hwnd)
+{
+    int i;
+    int currentRowNum = 1;
+    int currentColumnNum = 0;
+    //The first oval is drawn in the top left corner.
+    int ovalXPos = COLOR_PALETTE_TOP_LEFT_X;
+    int ovalYPos = COLOR_PALETTE_TOP_LEFT_Y;
+
+    for (i = 0; i < COLOR_PALETTE_OVAL_NUM; i++)
+    {
+        //Row still not filled.
+        if (currentColumnNum < COLOR_PALETTE_WIDTH)
+        {
+            ovalXPos = COLOR_PALETTE_TOP_LEFT_X + COLOR_PALETTE_OVAL_WIDTH * currentColumnNum;
+            //Add spacing for ovals.
+            if (currentColumnNum != 0)
+            {
+                ovalXPos = ovalXPos + COLOR_PALETTE_OVAL_SPACING_HORIZONTAL;
+            }
+            currentColumnNum++;
+        }
+        //New row start x position.
+        else
+        {
+            ovalXPos = COLOR_PALETTE_TOP_LEFT_X;
+            ovalYPos = COLOR_PALETTE_TOP_LEFT_Y + COLOR_PALETTE_OVAL_HEIGHT * currentRowNum + COLOR_PALETTE_OVAL_SPACING_VERTICAL * currentRowNum;
+            currentColumnNum = 1;
+            currentRowNum++;
+        }
+
+        //Create a color palette oval and store its handle for later use.
+        //There is no difference if we create a draw area square, because the following function doesn't affect the way a created button is drawn.
+        COLOR_PALETTE_OVAL_HANDLES[i] = CreateDrawAreaSquare(ovalXPos, ovalYPos, COLOR_PALETTE_OVAL_WIDTH, COLOR_PALETTE_OVAL_HEIGHT, ID_COLOR_PALETTE_OVAL_1 + i, hwnd);
+    }
+
+    //All the color palette oval colors are set manually, because each oval has a different color - no way to really use a for loop.
+    COLOR_PALETTE_OVAL_RGB[0] = CURRENT_DRAW_COLOR; //The current draw color - by default it is black.
+    COLOR_PALETTE_OVAL_RGB[1] = RGB(192, 192, 192); //Light grey.
+    COLOR_PALETTE_OVAL_RGB[2] = RGB(255, 255, 255); //White.
+    COLOR_PALETTE_OVAL_RGB[3] = RGB(153, 0, 0); //Dark red.
+    COLOR_PALETTE_OVAL_RGB[4] = RGB(255, 0, 0); //Red.
+    COLOR_PALETTE_OVAL_RGB[5] = RGB(255, 204, 204); //Light red.
+    COLOR_PALETTE_OVAL_RGB[6] = RGB(189, 0, 183); //Darker purple.
+    COLOR_PALETTE_OVAL_RGB[7] = RGB(126, 1, 250); //Blue purple.
+    COLOR_PALETTE_OVAL_RGB[8] = RGB(0, 171, 171); //Turqoise
+    COLOR_PALETTE_OVAL_RGB[9] = RGB(0, 0, 255); //Blue.
+    COLOR_PALETTE_OVAL_RGB[10] = RGB(0, 222, 255); //Teal.
+    COLOR_PALETTE_OVAL_RGB[11] = RGB(0, 255, 222); //Green Teal.
+    COLOR_PALETTE_OVAL_RGB[12] = RGB(0, 255, 43); //Light green.
+    COLOR_PALETTE_OVAL_RGB[13] = RGB(45, 159, 45); //Dark green.
+    COLOR_PALETTE_OVAL_RGB[14] = RGB(145, 255, 0); //Yellow green.
+    COLOR_PALETTE_OVAL_RGB[15] = RGB(255, 255, 0); //Yellow.
+    COLOR_PALETTE_OVAL_RGB[16] = RGB(255, 128, 0); //Orange
+    COLOR_PALETTE_OVAL_RGB[17] = RGB(255, 229, 204); //Light orange.
+}
+
 //Creates all draw area squares.
 void CreateDrawArea(HWND hwnd)
 {
     int i;
-    //The total number of squares is calculated based on the width and height of the draw area.
     int currentRowNum = 1;
     int currentColumnNum = 0;
     //The first square is drawn in the top left corner.
@@ -192,14 +329,14 @@ void CreateDrawArea(HWND hwnd)
         //Row still not filled.
         if (currentColumnNum < DRAW_AREA_WIDTH)
         {
-            squareXPos = DRAW_AREA_TOP_LEFT_X + DRAW_AREA_SQUARE_WIDTH*currentColumnNum;
+            squareXPos = DRAW_AREA_TOP_LEFT_X + DRAW_AREA_SQUARE_WIDTH * currentColumnNum;
             currentColumnNum++;
         }
         //New row start x position.
         else
         {
             squareXPos = DRAW_AREA_TOP_LEFT_X;
-            squareYPos = DRAW_AREA_TOP_LEFT_Y + DRAW_AREA_SQUARE_HEIGHT*currentRowNum;
+            squareYPos = DRAW_AREA_TOP_LEFT_Y + DRAW_AREA_SQUARE_HEIGHT * currentRowNum;
             currentColumnNum = 1;
             currentRowNum++;
         }
@@ -208,6 +345,28 @@ void CreateDrawArea(HWND hwnd)
         //Set the default square color for drawing.
         DRAW_AREA_SQUARE_RGB[i] = DEFAULT_DRAW_AREA_SQUARE_COLOR;
     }
+}
+
+//Draws the current color square
+void DrawCurrentColorSquare(LPDRAWITEMSTRUCT lpDIS, int squareColorRGB, HGDIOBJ drawingBrush, HGDIOBJ drawingPen, int squareBorderColor)
+{
+    SetDCPenColor(lpDIS->hDC, squareBorderColor);
+    SetDCBrushColor(lpDIS->hDC, squareColorRGB);
+    SelectObject(lpDIS->hDC, drawingBrush);
+    SelectObject(lpDIS->hDC, drawingPen);
+    Rectangle(lpDIS->hDC, lpDIS->rcItem.left, lpDIS->rcItem.top,
+        lpDIS->rcItem.right, lpDIS->rcItem.bottom);
+}
+
+//Draws a certain color palette oval.
+void DrawColorPaletteOval(LPDRAWITEMSTRUCT lpDIS, int ovalColorRGB, HGDIOBJ drawingBrush, HGDIOBJ drawingPen, int ovalBorderColor)
+{
+    SetDCPenColor(lpDIS->hDC, ovalBorderColor);
+    SetDCBrushColor(lpDIS->hDC, ovalColorRGB);
+    SelectObject(lpDIS->hDC, drawingBrush);
+    SelectObject(lpDIS->hDC, drawingPen);
+    RoundRect(lpDIS->hDC, lpDIS->rcItem.left, lpDIS->rcItem.top,
+        lpDIS->rcItem.right, lpDIS->rcItem.bottom, COLOR_PALETTE_OVAL_WIDTH, COLOR_PALETTE_OVAL_HEIGHT);;
 }
 
 //Draws a certain draw area square.
@@ -241,6 +400,22 @@ void RedrawDrawArea()
     }
 }
 
+//Returns the color palette oval sequence number based on its handle.
+//Returns -1 if there is no such color palette oval with the specified handle value.
+int GetColorPaletteOvalSeqNumByHandle(HWND ovalHandle, HWND* allOvalHandles, int colorPaletteOvalNum)
+{
+    int i;
+    for (i = 0; i < colorPaletteOvalNum; i++)
+    {
+        if (allOvalHandles[i] == ovalHandle)
+        {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
 //Returns the draw area square sequence number based on its handle.
 //Returns -1 if there is no such draw area square with the specified handle value.
 int GetDrawAreaSquareSeqNumByHandle(HWND squareHandle, HWND* allSquareHandles, int drawAreaSquareNum)
@@ -264,6 +439,8 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
     switch (message) //Handle the messages.
     {
         case WM_CREATE:
+            CreateCurrentColorSquare(hwnd);
+            CreateColorPalette(hwnd);
             CreateDrawArea(hwnd);
             break;
         case WM_PAINT:
@@ -275,15 +452,41 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
         case WM_DRAWITEM:
             {
                 LPDRAWITEMSTRUCT lpDIS = (LPDRAWITEMSTRUCT) lParam;
-                COLORREF drawAreaSquareBgColor = DRAW_AREA_SQUARE_RGB[GetDrawAreaSquareSeqNumByHandle(lpDIS->hwndItem, DRAW_AREA_SQUARE_HANDLES, DRAW_AREA_SQUARE_NUM)];
-                DrawDrawAreaSquare(lpDIS, drawAreaSquareBgColor,GetStockObject(DC_BRUSH), GetStockObject(DC_PEN), DRAW_DRAW_AREA_SQUARE_BORDER);
+                if (HandleIsCurrentColorSquareHandle(lpDIS->hwndItem, CURRENT_COLOR_SQUARE_HANDLE))
+                {
+                    //Redraw the current color square.
+                    DrawCurrentColorSquare(lpDIS, CURRENT_DRAW_COLOR, GetStockObject(DC_BRUSH), GetStockObject(DC_PEN), DEFAULT_CURRENT_COLOR_SQUARE_BORDER_COLOR);
+                }
+                else if (HandleIsColorPaletteOvalHandle(lpDIS->hwndItem, COLOR_PALETTE_OVAL_HANDLES, COLOR_PALETTE_OVAL_NUM))
+                {
+                    //Redraw a color palette oval.
+                    COLORREF colorPaletteOvalColor = COLOR_PALETTE_OVAL_RGB[GetColorPaletteOvalSeqNumByHandle(lpDIS->hwndItem, COLOR_PALETTE_OVAL_HANDLES, COLOR_PALETTE_OVAL_NUM)];
+                    DrawColorPaletteOval(lpDIS, colorPaletteOvalColor, GetStockObject(DC_BRUSH), GetStockObject(DC_PEN), DEFAULT_COLOR_PALETTE_OVAL_BORDER_COLOR);
+                }
+                else if (HandleIsDrawAreaSquareHandle(lpDIS->hwndItem, DRAW_AREA_SQUARE_HANDLES, DRAW_AREA_SQUARE_NUM))
+                {
+                    //Redraw a draw area square.
+                    COLORREF drawAreaSquareBgColor = DRAW_AREA_SQUARE_RGB[GetDrawAreaSquareSeqNumByHandle(lpDIS->hwndItem, DRAW_AREA_SQUARE_HANDLES, DRAW_AREA_SQUARE_NUM)];
+                    DrawDrawAreaSquare(lpDIS, drawAreaSquareBgColor, GetStockObject(DC_BRUSH), GetStockObject(DC_PEN), DRAW_DRAW_AREA_SQUARE_BORDER);
+                } 
+                else 
                 return TRUE;
             }
             break;
         case WM_COMMAND:
-            //A draw area square has been clicked.
-            if (inRange(LOWORD(wParam), DRAW_AREA_LOW_VALUE, DRAW_AREA_HIGH_VALUE))
+            if (InRange(LOWORD(wParam), COLOR_PALETTE_LOW_VALUE, COLOR_PALETTE_HIGH_VALUE))
             {
+                //A color palette oval has been clicked.
+                HWND colorPaletteOvalHandle = GetDlgItem(hwnd, LOWORD(wParam));
+                int colorPaletteOvalSeqNum = GetColorPaletteOvalSeqNumByHandle(colorPaletteOvalHandle, COLOR_PALETTE_OVAL_HANDLES, COLOR_PALETTE_OVAL_NUM);
+                //Change the current draw color.
+                CURRENT_DRAW_COLOR = COLOR_PALETTE_OVAL_RGB[colorPaletteOvalSeqNum];
+                //Redraw the current color square with the newly selected color.
+                RedrawDrawAreaSquare(CURRENT_COLOR_SQUARE_HANDLE);
+            }
+            else if (InRange(LOWORD(wParam), DRAW_AREA_LOW_VALUE, DRAW_AREA_HIGH_VALUE))
+            {
+                //A draw area square has been clicked.
                 HWND drawAreaSquareHandle = GetDlgItem(hwnd, LOWORD(wParam));
                 int drawAreaSquareSeqNum = GetDrawAreaSquareSeqNumByHandle(drawAreaSquareHandle, DRAW_AREA_SQUARE_HANDLES, DRAW_AREA_SQUARE_NUM);
                 DRAW_AREA_SQUARE_RGB[drawAreaSquareSeqNum] = CURRENT_DRAW_COLOR;
