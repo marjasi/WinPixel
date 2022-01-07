@@ -18,7 +18,7 @@ Launch the winPixel.exe file in the winPixel subdirectory and start painting!
 ### Options
 - **Show/Hide Gridlines:** turn the gridlines on or off.
 - **Invert Gridline Color:** changes the gridline color from black to white and vice versa. If the gridlines are turned off, this option won't draw gridlines after clicking. Otherwise, it will redraw the gridlines with the changed color.
-## Drawing tools ()
+## Drawing tools
 ### The Pixel Pen
 A standard drawing tool that simply paints a selected pixel with the currently specified drawing color.
 ### The Gizmo Tool
@@ -36,3 +36,4 @@ When gridline visibility is changed, the whole drawing area is redrawn. Gridline
 ### Why only 24x24?
 The program was written without considering that having each drawing area pixel be represented as an owner drawn button is not the best solution when it comes to good performance. Also, the number of buttons required to be drawn based on the dimensions of the drawing area grows exponentially. Thus different dimensions were tested to pick a suitable one for a satisfying user experience. 24x24 turned out to be a good compromise on the time it takes to draw and its size. 16x16 was also considered, but turned out to be too limiting in the size category. If the drawing area is small, not a lot of exciting artistic decisions can be made when painting. Therefore, a bigger drawing area is better, even if it gives a slight performance loss. However, the pixel art editor shouldn't take up too much of the user's time loading.
 ## WinPixel in action
+![image](https://user-images.githubusercontent.com/43152072/148530230-37640f3e-f3fb-485a-8c53-759dece6989d.png)
