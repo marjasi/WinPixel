@@ -485,25 +485,29 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
             break;
         case WM_DRAWITEM:
             {
+                HGDIOBJ brushObject = GetStockObject(DC_BRUSH);
+                HGDIOBJ penObject = GetStockObject(DC_PEN);
                 LPDRAWITEMSTRUCT lpDIS = (LPDRAWITEMSTRUCT) lParam;
                 if (HandleIsCurrentColorSquareHandle(lpDIS->hwndItem, CURRENT_COLOR_SQUARE_HANDLE))
                 {
                     //Redraw the current color square.
-                    DrawCurrentColorSquare(lpDIS, CURRENT_DRAW_COLOR, GetStockObject(DC_BRUSH), GetStockObject(DC_PEN), DEFAULT_CURRENT_COLOR_SQUARE_BORDER_COLOR);
+                    DrawCurrentColorSquare(lpDIS, CURRENT_DRAW_COLOR, brushObject, penObject, DEFAULT_CURRENT_COLOR_SQUARE_BORDER_COLOR);
+
                 }
                 else if (HandleIsColorPaletteOvalHandle(lpDIS->hwndItem, COLOR_PALETTE_OVAL_HANDLES, COLOR_PALETTE_OVAL_NUM))
                 {
                     //Redraw a color palette oval.
                     COLORREF colorPaletteOvalColor = COLOR_PALETTE_OVAL_RGB[GetColorPaletteOvalSeqNumByHandle(lpDIS->hwndItem, COLOR_PALETTE_OVAL_HANDLES, COLOR_PALETTE_OVAL_NUM)];
-                    DrawColorPaletteOval(lpDIS, colorPaletteOvalColor, GetStockObject(DC_BRUSH), GetStockObject(DC_PEN), DEFAULT_COLOR_PALETTE_OVAL_BORDER_COLOR);
+                    DrawColorPaletteOval(lpDIS, colorPaletteOvalColor, brushObject, penObject, DEFAULT_COLOR_PALETTE_OVAL_BORDER_COLOR);
                 }
                 else if (HandleIsDrawAreaSquareHandle(lpDIS->hwndItem, DRAW_AREA_SQUARE_HANDLES, DRAW_AREA_SQUARE_NUM))
                 {
                     //Redraw a draw area square.
                     COLORREF drawAreaSquareBgColor = DRAW_AREA_SQUARE_RGB[GetDrawAreaSquareSeqNumByHandle(lpDIS->hwndItem, DRAW_AREA_SQUARE_HANDLES, DRAW_AREA_SQUARE_NUM)];
-                    DrawDrawAreaSquare(lpDIS, drawAreaSquareBgColor, GetStockObject(DC_BRUSH), GetStockObject(DC_PEN), DRAW_DRAW_AREA_SQUARE_BORDER);
-                } 
-                else 
+                    DrawDrawAreaSquare(lpDIS, drawAreaSquareBgColor, brushObject, penObject, DRAW_DRAW_AREA_SQUARE_BORDER);
+                }
+                DeleteObject(brushObject);
+                DeleteObject(penObject);
                 return TRUE;
             }
             break;
